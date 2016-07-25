@@ -17,9 +17,13 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
+
+import br.ufrn.lets.exceptionexpert.models.SignalerClass;
 
 public class ParseAST {
 
@@ -93,9 +97,11 @@ public class ParseAST {
 		}
 	}
 	
-	public static Map<MethodDeclaration, List> getThrowsStatement(CompilationUnit astRoot) {
+	public static SignalerClass getThrowsStatement(CompilationUnit astRoot) {
 		
-		final Map<MethodDeclaration, List> mapThrows = new HashMap<>();
+		final SignalerClass signaler = new SignalerClass();
+		
+		final Map<MethodDeclaration, List<Name>> mapThrows = new HashMap<>();
 		
 		//Ref: http://www.programcreek.com/2012/06/insertadd-statements-to-java-source-code-by-using-eclipse-jdt-astrewrite/
 //		TypeDeclaration typeDecl = (TypeDeclaration) astRoot.types().get(0);
@@ -109,14 +115,23 @@ public class ParseAST {
 		
 		astRootFinal.accept(new ASTVisitor() {
 			 
-			Set names = new HashSet();
+			public boolean visit(CompilationUnit node) {
+				signaler.setPackageDeclaration(node.getPackage());
+				return true;
+			}
+
+			public boolean visit(TypeDeclaration node) {
+				signaler.setTypeDeclaration(node);
+				return true;
+			}
  
 			public boolean visit(MethodDeclaration node) {
 				
 				SimpleName name = node.getName();
-				List thrownExceptionTypes = node.thrownExceptions();
+				List<Name> thrownExceptionTypes = node.thrownExceptions();
 				
 				mapThrows.put(node, thrownExceptionTypes);
+				System.out.println("Metodo " + name);
 				
 				System.out.println("Exceptions: '" + thrownExceptionTypes);
 				return false;
@@ -124,7 +139,12 @@ public class ParseAST {
 
 		});
 		
-		return mapThrows;
+		if (!mapThrows.isEmpty()) {
+			signaler.setMapThrows(mapThrows);
+			return signaler;
+		}
+
+		return null;
 	}
 	
 }

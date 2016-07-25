@@ -19,6 +19,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import br.ufrn.lets.exceptionexpert.ast.ParseAST;
 import br.ufrn.lets.exceptionexpert.models.Rule;
+import br.ufrn.lets.exceptionexpert.models.SignalerClass;
 import br.ufrn.lets.exceptionexpert.verifier.VerifyException;
 import br.ufrn.lets.exceptionexpert.verifier.VerifySignaler;
 import br.ufrn.lets.xml.ParseXML;
@@ -66,11 +67,11 @@ public class ExceptionExpertView extends ViewPart implements IDocumentListener {
 		List<Rule> rules = ParseXML.parse();
 		
 		
-		 Map<MethodDeclaration, List> throwsStatement = ParseAST.getThrowsStatement(astRoot);
+		 SignalerClass signaler = ParseAST.getThrowsStatement(astRoot);
 		 
-		 if (!throwsStatement.isEmpty()) {
+		 if (signaler != null) {
 			 System.out.println("Rule 1");
-			 VerifySignaler.verify(throwsStatement);
+			 VerifySignaler.verify(signaler, rules);
 		 }
 		
 		//Verifiy if there is some rule related to the current class

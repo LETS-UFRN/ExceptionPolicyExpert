@@ -73,7 +73,9 @@ public class ParseXML {
 					objRule.setSignaler(getSignaler(rule));
 					objRule.setExceptionAndHandlers(map);
 					
-					objRule.toString();
+//					objRule.toString();
+					
+					rules.add(objRule);
 					
 				}
 			}
