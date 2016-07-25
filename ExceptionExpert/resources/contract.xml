@@ -1,0 +1,15 @@
+<ecl>
+	
+	<ehrule type = "full" signaler="p.Class">
+		<exception type="UmaExcecao">
+		<handler signature="p.Class2" />    	  
+		<handler signature="p.Class3" />    	  
+		</exception>
+	</ehrule>
+	
+	<ehrule type = "full" signaler="p.Class3">
+		<exception type="ExtensaoUmaExcecao">
+		<handler signature="p.Class3" />    	  
+		</exception>
+	</ehrule>
+</ecl>
