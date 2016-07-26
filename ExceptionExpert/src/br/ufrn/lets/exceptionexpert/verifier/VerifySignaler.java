@@ -13,7 +13,9 @@ import br.ufrn.lets.exceptionexpert.models.SignalerClass;
 
 public class VerifySignaler {
 
-	public static void verify(SignalerClass signaler, List<Rule> rules) {
+	public static String verify(SignalerClass signaler, List<Rule> rules) {
+		StringBuilder s = new StringBuilder();
+		
 		List<Rule> rulesRelatedToSignaler = getRulesRelatedToSignaler(signaler, rules);
 		
 		for(Entry<MethodDeclaration, List<Name>> methodsExceptions : signaler.getMapThrows().entrySet()) {
@@ -24,19 +26,21 @@ public class VerifySignaler {
 				List<Rule> rulesRelatedToException = getRulesRelatedToException(excName, rulesRelatedToSignaler);
 				
 				if (!rulesRelatedToException.isEmpty()) {
-					System.out.println("============ExcExp====================");
-					System.out.println("Method: " + methodsExceptions.getKey().getName());
-					System.out.println("Exception: " + excName);
-					System.out.println("MAY HANDLE:");
+					s.append("============ExcExp====================" + "\n");
+					s.append("Method: " + methodsExceptions.getKey().getName() + "\n");
+					s.append("Exception: " + excName + "\n");
+					s.append("MAY HANDLE:" + "\n");
+					
 					for (Rule r: rulesRelatedToException) {
 						List<String> list = r.getExceptionAndHandlers().get(excName.toString());
-						for (String s : list){
-							System.out.println("----> "+s);
+						for (String exc : list){
+							s.append("----> "+exc + "\n");
 						}
 					}
 				}
 			}
 		}
+		return s.toString();
 	}
 
 	private static List<Rule> getRulesRelatedToSignaler(SignalerClass signaler, List<Rule> rules) {

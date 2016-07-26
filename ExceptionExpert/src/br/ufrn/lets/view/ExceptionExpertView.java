@@ -1,13 +1,8 @@
 package br.ufrn.lets.view;
 
 import java.util.List;
-import java.util.Map;
 
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.swt.SWT;
@@ -20,7 +15,6 @@ import org.eclipse.ui.part.ViewPart;
 import br.ufrn.lets.exceptionexpert.ast.ParseAST;
 import br.ufrn.lets.exceptionexpert.models.Rule;
 import br.ufrn.lets.exceptionexpert.models.SignalerClass;
-import br.ufrn.lets.exceptionexpert.verifier.VerifyException;
 import br.ufrn.lets.exceptionexpert.verifier.VerifySignaler;
 import br.ufrn.lets.xml.ParseXML;
 
@@ -62,18 +56,18 @@ public class ExceptionExpertView extends ViewPart implements IDocumentListener {
 		//AST Tree from current editor
 		CompilationUnit astRoot = ParseAST.parse();
 		
-		
 		//Parse XML documentation rules
 		List<Rule> rules = ParseXML.parse();
+
+		SignalerClass signaler = ParseAST.getThrowsStatement(astRoot);
+
+		String verifySignalerMessages = "";
 		
-		
-		 SignalerClass signaler = ParseAST.getThrowsStatement(astRoot);
-		 
-		 if (signaler != null) {
-			 System.out.println("Rule 1");
-			 VerifySignaler.verify(signaler, rules);
-		 }
-		
+		if (signaler != null) {
+			System.out.println("Rule 1");
+			verifySignalerMessages = VerifySignaler.verify(signaler, rules);
+		}
+
 		//Verifiy if there is some rule related to the current class
 //			VerifyException verifyException = new VerifyException();
 //			if (verifyException.verifyRuleCurrentClass(ast)) {
@@ -82,8 +76,9 @@ public class ExceptionExpertView extends ViewPart implements IDocumentListener {
 //				
 //			}
 		
-		//Pega o conteudo todo do documento em edição
-		textView.setText(event.getDocument().get());
+		//Show warning messages on the output console
+		textView.setText(verifySignalerMessages);
+
 	}
 
 
