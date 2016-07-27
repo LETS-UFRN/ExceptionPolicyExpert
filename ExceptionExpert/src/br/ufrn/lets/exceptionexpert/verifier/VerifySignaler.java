@@ -8,45 +8,48 @@ import java.util.Map.Entry;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
+import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.Rule;
-import br.ufrn.lets.exceptionexpert.models.SignalerClass;
 
 public class VerifySignaler {
 
-	public static String verify(SignalerClass signaler, List<Rule> rules) {
+	public static String verify(ASTExceptionRepresentation astRep, List<Rule> rules) {
 		StringBuilder s = new StringBuilder();
 		
-		List<Rule> rulesRelatedToSignaler = getRulesRelatedToSignaler(signaler, rules);
-		
-		for(Entry<MethodDeclaration, List<Name>> methodsExceptions : signaler.getMapThrows().entrySet()) {
-			List<Name> excList = methodsExceptions.getValue();
+		if (astRep != null && astRep.getSignalerRepresentation() != null && astRep.getSignalerRepresentation().getMapThrows() != null) {
+			List<Rule> rulesRelatedToSignaler = getRulesRelatedToSignaler(astRep, rules);
 			
-			//Verify if some rule is related to exceptions throws by method
-			for (Name excName : excList) {
-				List<Rule> rulesRelatedToException = getRulesRelatedToException(excName, rulesRelatedToSignaler);
+			for(Entry<MethodDeclaration, List<Name>> methodsExceptions : astRep.getSignalerRepresentation().getMapThrows().entrySet()) {
+				List<Name> excList = methodsExceptions.getValue();
 				
-				if (!rulesRelatedToException.isEmpty()) {
-					s.append("============ExcExp====================" + "\n");
-					s.append("Method: " + methodsExceptions.getKey().getName() + "\n");
-					s.append("Exception: " + excName + "\n");
-					s.append("MAY HANDLE:" + "\n");
+				//Verify if some rule is related to exceptions throws by method
+				for (Name excName : excList) {
+					List<Rule> rulesRelatedToException = getRulesRelatedToException(excName, rulesRelatedToSignaler);
 					
-					for (Rule r: rulesRelatedToException) {
-						List<String> list = r.getExceptionAndHandlers().get(excName.toString());
-						for (String exc : list){
-							s.append("----> "+exc + "\n");
+					if (!rulesRelatedToException.isEmpty()) {
+						s.append("============ExcExp====================" + "\n");
+						s.append("Method: " + methodsExceptions.getKey().getName() + "\n");
+						s.append("Exception: " + excName + "\n");
+						s.append("SHOULD HANDLE:" + "\n");
+						
+						for (Rule r: rulesRelatedToException) {
+							List<String> list = r.getExceptionAndHandlers().get(excName.toString());
+							for (String exc : list){
+								s.append("----> "+exc + "\n");
+							}
 						}
 					}
 				}
 			}
 		}
+		
 		return s.toString();
 	}
 
-	private static List<Rule> getRulesRelatedToSignaler(SignalerClass signaler, List<Rule> rules) {
+	private static List<Rule> getRulesRelatedToSignaler(ASTExceptionRepresentation astRep, List<Rule> rules) {
 		List<Rule> rulesRelated = new ArrayList<>();
 		
-		String className = signaler.getPackageDeclaration().getName().getFullyQualifiedName() + "." + signaler.getTypeDeclaration().getName().getIdentifier();
+		String className = astRep.getPackageDeclaration().getName().getFullyQualifiedName() + "." + astRep.getTypeDeclaration().getName().getIdentifier();
 		
 		//Verify if exists a rule with this signaler
 		for (Rule rule : rules) {

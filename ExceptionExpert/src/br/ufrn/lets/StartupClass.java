@@ -13,7 +13,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import br.ufrn.lets.view.ExceptionExpertView;
 
 
-
 public class StartupClass implements IStartup {
 
 	@Override
@@ -32,22 +31,6 @@ public class StartupClass implements IStartup {
 
 		    	ExceptionExpertView view = (ExceptionExpertView) page.findView(ExceptionExpertView.ID);
 				doc.addDocumentListener(view);
-				
-			    
-//			    doc.addDocumentListener(new IDocumentListener() {
-//					
-//					@Override
-//					public void documentChanged(DocumentEvent event) {
-//			            System.out.println("Change happened: " + event.toString());
-//						
-//					}
-//					
-//					@Override
-//					public void documentAboutToBeChanged(DocumentEvent event) {
-//			            System.out.println("I predict that the following change will occur: "+event.toString());
-//						
-//					}
-//				});
 			    
 		    }
 		});	

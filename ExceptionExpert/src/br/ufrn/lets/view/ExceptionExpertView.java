@@ -13,8 +13,10 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.ViewPart;
 
 import br.ufrn.lets.exceptionexpert.ast.ParseAST;
+import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.Rule;
 import br.ufrn.lets.exceptionexpert.models.SignalerClass;
+import br.ufrn.lets.exceptionexpert.verifier.VerifyHandler;
 import br.ufrn.lets.exceptionexpert.verifier.VerifySignaler;
 import br.ufrn.lets.xml.ParseXML;
 
@@ -59,25 +61,22 @@ public class ExceptionExpertView extends ViewPart implements IDocumentListener {
 		//Parse XML documentation rules
 		List<Rule> rules = ParseXML.parse();
 
-		SignalerClass signaler = ParseAST.getThrowsStatement(astRoot);
+		ASTExceptionRepresentation astRep = ParseAST.getThrowsStatement(astRoot);
 
 		String verifySignalerMessages = "";
 		
-		if (signaler != null) {
-			System.out.println("Rule 1");
-			verifySignalerMessages = VerifySignaler.verify(signaler, rules);
-		}
+		String verifyHandlerMessages = "";
 
-		//Verifiy if there is some rule related to the current class
-//			VerifyException verifyException = new VerifyException();
-//			if (verifyException.verifyRuleCurrentClass(ast)) {
-//				
-//				
-//				
-//			}
 		
+		System.out.println("Rule 1");
+		verifySignalerMessages = VerifySignaler.verify(astRep, rules);
+
+		System.out.println("Rule 2");
+		verifyHandlerMessages = VerifyHandler.verify(astRep, rules);
+
+
 		//Show warning messages on the output console
-		textView.setText(verifySignalerMessages);
+		textView.setText(verifySignalerMessages + "\n\n" + verifyHandlerMessages);
 
 	}
 

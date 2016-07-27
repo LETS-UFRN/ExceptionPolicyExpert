@@ -51,8 +51,6 @@ public class ParseXML {
 				
 				Node nNode = nList.item(temp);
 
-				System.out.println("\nCurrent Element :" + nNode.getNodeName());
-
 				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 					
 					Element rule = (Element) nNode;
@@ -62,7 +60,6 @@ public class ParseXML {
 					NodeList handlers = getHandlers(rule);
 					
 					for (int j = 0; j < handlers.getLength(); j++) {
-						System.out.println("Handler " + getHandler((Element) handlers.item(j)));
 						listHandlers.add(getHandler((Element) handlers.item(j)));
 					}
 					

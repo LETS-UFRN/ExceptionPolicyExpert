@@ -10,27 +10,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 public class SignalerClass{
 
-	PackageDeclaration packageDeclaration;
-	
-	TypeDeclaration typeDeclaration;
-	
 	Map<MethodDeclaration, List<Name>> mapThrows;
-
-	public PackageDeclaration getPackageDeclaration() {
-		return packageDeclaration;
-	}
-
-	public void setPackageDeclaration(PackageDeclaration packageDeclaration) {
-		this.packageDeclaration = packageDeclaration;
-	}
-
-	public TypeDeclaration getTypeDeclaration() {
-		return typeDeclaration;
-	}
-
-	public void setTypeDeclaration(TypeDeclaration typeDeclaration) {
-		this.typeDeclaration = typeDeclaration;
-	}
 
 	public Map<MethodDeclaration, List<Name>> getMapThrows() {
 		return mapThrows;
