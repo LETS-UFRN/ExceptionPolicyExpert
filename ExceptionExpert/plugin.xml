@@ -18,5 +18,14 @@
 	<extension point="org.eclipse.ui.startup">
    		<startup class="br.ufrn.lets.StartupClass"/>
     </extension>
+    
+    
+    <extension point="org.eclipse.core.resources.markers" 
+    			id="br.ufrn.lets.view.MyMarkerId"
+  			    name="My Marker">
+		<super type="org.eclipse.core.resources.problemmarker"/>
+		<persistent value="true"/>
+		<attribute name="description"/>
+	</extension>
 
 </plugin>

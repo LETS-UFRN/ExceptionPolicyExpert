@@ -15,7 +15,6 @@ import org.eclipse.ui.part.ViewPart;
 import br.ufrn.lets.exceptionexpert.ast.ParseAST;
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.Rule;
-import br.ufrn.lets.exceptionexpert.models.SignalerClass;
 import br.ufrn.lets.exceptionexpert.verifier.VerifyHandler;
 import br.ufrn.lets.exceptionexpert.verifier.VerifySignaler;
 import br.ufrn.lets.xml.ParseXML;
@@ -77,7 +76,7 @@ public class ExceptionExpertView extends ViewPart implements IDocumentListener {
 
 		//Show warning messages on the output console
 		textView.setText(verifySignalerMessages + "\n\n" + verifyHandlerMessages);
-
+		
 	}
 
 
@@ -89,5 +88,7 @@ public class ExceptionExpertView extends ViewPart implements IDocumentListener {
 	public void setTextView(Text textView) {
 		this.textView = textView;
 	}
+	
+
 
 }
