@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -18,9 +14,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.HandlerClass;
@@ -28,21 +22,11 @@ import br.ufrn.lets.exceptionexpert.models.SignalerClass;
 
 public class ParseAST {
 
-	public static CompilationUnit parse() {
+	public static CompilationUnit parse(ICompilationUnit cu) {
 		
-		IJavaElement activeEditorJavaInput = EditorUtility.getActiveEditorJavaInput();
-		
-		CompilationUnit astRoot = parseUnit((ICompilationUnit) activeEditorJavaInput);
+		CompilationUnit astRoot = parseUnit(cu);
 		
 		return astRoot;
-//		return parse.getAST();
-		
-//		try {
-//			getIMethods(compilationUnit);
-//		} catch (JavaModelException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 		
 	}
 
@@ -52,50 +36,6 @@ public class ParseAST {
 		parser.setSource(unit); // set source
 		parser.setResolveBindings(true); // we need bindings later on
 		return (CompilationUnit) parser.createAST(null /* IProgressMonitor */); // parse
-	}
-	
-	public static String getCurrentClassName(CompilationUnit ast) {
-		String className = "";
-		
-		return className;
-	}
-
-	private static List<IMethod> getMethods(ICompilationUnit unit) {
-		List<IMethod> listOfMethods = new ArrayList<>();
-		
-		try {
-			IType[] allTypes = unit.getAllTypes();
-			for (IType type : allTypes) {
-				IMethod[] methods = type.getMethods();
-				for (IMethod method : methods) {
-					listOfMethods.add(method);
-				}
-			}
-		} catch (JavaModelException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return listOfMethods;
-		
-	}
-	
-	private static void getIMethods(ICompilationUnit unit) throws JavaModelException {
-		IType[] allTypes = unit.getAllTypes();
-		for (IType type : allTypes) {
-			IMethod[] methods = type.getMethods();
-			for (IMethod method : methods) {
-
-				System.out.println("Method name " + method.getElementName());
-				System.out.println("Method ex types " + method.getExceptionTypes());
-				System.out.println("Method handle identifier " + method.getHandleIdentifier());
-
-
-				//				System.out.println("Signature " + method.getSignature());
-				//				System.out.println("Return Type " + method.getReturnType());
-
-			}
-		}
 	}
 	
 	public static ASTExceptionRepresentation getThrowsStatement(CompilationUnit astRoot) {
@@ -119,7 +59,7 @@ public class ParseAST {
 		//Ref: http://www.programcreek.com/java-api-examples/index.php?api=org.eclipse.jdt.core.dom.MethodDeclaration
 		
 		final CompilationUnit astRootFinal = astRoot;
-		
+
 		astRootFinal.accept(new ASTVisitor() {
 			 
 			public boolean visit(CompilationUnit node) {
@@ -134,11 +74,14 @@ public class ParseAST {
  
 			public boolean visit(MethodDeclaration node) {
 				
+				int lineNumber = astRootFinal.getLineNumber(node.getStartPosition());
+				
 				SimpleName name = node.getName();
 				List<Name> thrownExceptionTypes = node.thrownExceptions();
 				
 				mapThrows.put(node, thrownExceptionTypes);
 				System.out.println("Metodo " + name);
+				System.out.println("lineNumber " + lineNumber);
 				
 				System.out.println("Exceptions: '" + thrownExceptionTypes);
 				return true;

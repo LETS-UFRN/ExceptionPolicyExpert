@@ -5,16 +5,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
+import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
 import br.ufrn.lets.exceptionexpert.models.Rule;
 
 public class VerifySignaler {
+	
+	public static CompilationUnit astRoot;
 
-	public static String verify(ASTExceptionRepresentation astRep, List<Rule> rules) {
-		StringBuilder s = new StringBuilder();
+	public static List<ReturnMessage> verify(ASTExceptionRepresentation astRep, List<Rule> rules) {
+		List<ReturnMessage> returnM = new ArrayList<ReturnMessage>();
 		
 		if (astRep != null && astRep.getSignalerRepresentation() != null && astRep.getSignalerRepresentation().getMapThrows() != null) {
 			List<Rule> rulesRelatedToSignaler = getRulesRelatedToSignaler(astRep, rules);
@@ -27,23 +31,25 @@ public class VerifySignaler {
 					List<Rule> rulesRelatedToException = getRulesRelatedToException(excName, rulesRelatedToSignaler);
 					
 					if (!rulesRelatedToException.isEmpty()) {
-						s.append("============ExcExp====================" + "\n");
-						s.append("Method: " + methodsExceptions.getKey().getName() + "\n");
-						s.append("Exception: " + excName + "\n");
-						s.append("SHOULD HANDLE:" + "\n");
+						ReturnMessage rm = new ReturnMessage();
+						rm.setMessage("SHOULD HANDLE: ");
 						
 						for (Rule r: rulesRelatedToException) {
 							List<String> list = r.getExceptionAndHandlers().get(excName.toString());
 							for (String exc : list){
-								s.append("----> "+exc + "\n");
+								rm.setMessage(rm.getMessage() + "-  "+ exc);
 							}
 						}
+						int lineNumber = astRoot.getLineNumber(methodsExceptions.getKey().getStartPosition());
+						rm.setLineNumber(lineNumber);
+						
+						returnM.add(rm);
 					}
 				}
 			}
 		}
 		
-		return s.toString();
+		return returnM;
 	}
 
 	private static List<Rule> getRulesRelatedToSignaler(ASTExceptionRepresentation astRep, List<Rule> rules) {

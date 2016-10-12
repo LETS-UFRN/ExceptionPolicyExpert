@@ -6,16 +6,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.jdt.core.dom.CatchClause;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
+import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
 import br.ufrn.lets.exceptionexpert.models.Rule;
 
 public class VerifyHandler {
 
-	public static String verify(ASTExceptionRepresentation astRep, List<Rule> rules) {
-		StringBuilder s = new StringBuilder();
+	public static CompilationUnit astRoot;
+
+	public static List<ReturnMessage> verify(ASTExceptionRepresentation astRep, List<Rule> rules) {
+		List<ReturnMessage> returnM = new ArrayList<ReturnMessage>();
 		
 		if (astRep != null && astRep.getHandlerRepresentation() != null && astRep.getHandlerRepresentation().getMapMethodTry() != null) {
 			List<Rule> rulesRelatedToSignaler = getRulesRelatedToHandler(astRep, rules);
@@ -47,23 +51,20 @@ public class VerifyHandler {
 					}
 					
 					if (!hasRuleRelated) {
-						s.append("============ExcExp====================" + "\n");
-						s.append("Method: " + methodsCatches.getKey().getName() + "\n");
-						s.append("Exception: " + excName.getException() + "\n");
-						s.append("VIOLATION: Cannot catch this exception" + "\n");
 						
-//						for (Rule r: rulesRelatedToException) {
-//							List<String> list = r.getExceptionAndHandlers().get(excName.toString());
-//							for (String exc : list){
-//								s.append("----> "+exc + "\n");
-//							}
-//						}
+						ReturnMessage rm = new ReturnMessage();
+						rm.setMessage("VIOLATION: Cannot catch this exception: " + excName.getException());
+						
+						int lineNumber = astRoot.getLineNumber(methodsCatches.getKey().getStartPosition());
+						rm.setLineNumber(lineNumber);
+						
+						returnM.add(rm);
 					}
 				}
 			}
 		}
 		
-		return s.toString();
+		return returnM;
 	}
 
 	private static List<Rule> getRulesRelatedToHandler(ASTExceptionRepresentation astRep, List<Rule> rules) {
