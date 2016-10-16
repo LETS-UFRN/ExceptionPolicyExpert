@@ -2,6 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
    
+   <!--
    <extension point="org.eclipse.ui.views">
       	<category
             id="br.ufrn.lets.viewCategory"
@@ -14,6 +15,7 @@
             name="Exception Expert">
       	</view>
 	</extension>
+	-->
 
 	<extension point="org.eclipse.ui.startup">
    		<startup class="br.ufrn.lets.StartupClass"/>
@@ -21,11 +23,11 @@
     
     
     <extension point="org.eclipse.core.resources.markers" 
-    			id="br.ufrn.lets.view.MyMarkerId"
-  			    name="My Marker">
+    			id="br.ufrn.lets.view.ExceptionPolicyExpertId"
+  			    name="ExceptionPolicyExpert">
 		<super type="org.eclipse.core.resources.problemmarker"/>
 		<persistent value="true"/>
 		<attribute name="description"/>
 	</extension>
-
+	
 </plugin>

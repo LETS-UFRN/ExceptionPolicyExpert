@@ -156,7 +156,7 @@ public class StartupClass implements IStartup {
 		deleteMarkers(res);
 		
 		IMarker marker = null;
-		marker = res.createMarker("br.ufrn.lets.view.MyMarkerId");
+		marker = res.createMarker("br.ufrn.lets.view.ExceptionPolicyExpertId");
 		marker.setAttribute(IMarker.TEXT, rm.getMessage());
 		marker.setAttribute(IMarker.MESSAGE, rm.getMessage());
 		marker.setAttribute(IMarker.LINE_NUMBER, rm.getLineNumber());
