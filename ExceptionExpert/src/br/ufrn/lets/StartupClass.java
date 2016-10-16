@@ -8,6 +8,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -15,12 +16,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IStartup;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 import br.ufrn.lets.exceptionexpert.ast.ParseAST;
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
@@ -32,7 +28,7 @@ import br.ufrn.lets.xml.ParseXML;
 
 public class StartupClass implements IStartup {
 
-	IResource resource;
+	List<Rule> rules;
 	
 	List<ReturnMessage> verifySignalerMessages = new ArrayList<ReturnMessage>();
 	
@@ -44,15 +40,9 @@ public class StartupClass implements IStartup {
 		    @Override
 		    public void run() {
 		    	
-		    	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-			    IEditorPart part = page.getActiveEditor();
-			    if (!(part instanceof AbstractTextEditor))
-			      return;
-			    ITextEditor editor = (ITextEditor)part;
-			    
-		    	//Gets the file in edition
-				resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
-				
+		    	//Parse XML documentation rules
+				rules = ParseXML.parse();
+		    	
 				//Configures the change listener
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
 				IResourceChangeListener listener = new IResourceChangeListener() {
@@ -64,35 +54,61 @@ public class StartupClass implements IStartup {
 						
 						IResourceDelta rootDelta = event.getDelta();
 						
-						//Find the actual class in edition
-						IResourceDelta docDelta = rootDelta.findMember(resource.getFullPath());
+						//List with all .java changed files
+						final ArrayList<IResource> changedClasses = new ArrayList<IResource>();
 						
-						//Return if there is no modification in the actual class in edition
-						if (docDelta == null)
-							return;
+						//Visit the children to get all .java changed files
+						IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
+							public boolean visit(IResourceDelta delta) {
+								//only interested in changed resources (not added or removed)
+								if (delta.getKind() != IResourceDelta.CHANGED)
+									return true;
+								//only interested in content changes
+								if ((delta.getFlags() & IResourceDelta.CONTENT) == 0)
+									return true;
+								IResource resource = delta.getResource();
+								//only interested in files with the "java" extension
+								if (resource.getType() == IResource.FILE && 
+										"java".equalsIgnoreCase(resource.getFileExtension())) {
+									changedClasses.add(resource);
+								}
+								return true;
+							}
+						};
 						
-						//Call controller
-						verifyHandlersAndSignalers(docDelta);
+						
+						try {
+							rootDelta.accept(visitor);
+						} catch (CoreException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+				         
+						if (!changedClasses.isEmpty()) {
+							//If there are changed files
+							for (IResource changedClass : changedClasses) {
+								//Call the verifier for each changed class
+								verifyHandlersAndSignalers(changedClass);
+							}
+						}
 						
 					}
 					
 				};
+				
+				//Plug the listener in the workspace
 				workspace.addResourceChangeListener(listener, IResourceChangeEvent.POST_BUILD);
 		    }
 		});	
 	}
 	
-	private void verifyHandlersAndSignalers(IResourceDelta docDelta) {
+	private void verifyHandlersAndSignalers(IResource changedClass) {
 
-		IResource resource2 = docDelta.getResource();
-		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(resource2);
+		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(changedClass);
 		
-		//AST Tree from current editor
+		//AST Tree from changed class
 		CompilationUnit astRoot = ParseAST.parse(compilationUnit);
 		
-		//Parse XML documentation rules
-		List<Rule> rules = ParseXML.parse();
-
 		ASTExceptionRepresentation astRep = ParseAST.getThrowsStatement(astRoot);
 
 		System.out.println("Rule 1");
@@ -104,11 +120,12 @@ public class StartupClass implements IStartup {
 		verifyHandlerMessages = VerifyHandler.verify(astRep, rules);
 		
 		try {
+			//TODO improve this - create a superclass
 			for(ReturnMessage rm : verifySignalerMessages) {
-				createMarker(resource, rm);
+				createMarker(changedClass, rm);
 			}
 			for(ReturnMessage rm : verifyHandlerMessages) {
-				createMarker(resource, rm);
+				createMarker(changedClass, rm);
 			}
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
@@ -117,8 +134,27 @@ public class StartupClass implements IStartup {
 			
 	}
 	
+	private static void deleteMarkers(IResource res){
+		IMarker[] problems = null;
+		int depth = IResource.DEPTH_INFINITE;
+		try {
+			problems = res.findMarkers(null, true, depth);
+			
+			for (int i = 0; i < problems.length; i++) {
+				problems[i].delete();
+			}
+
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static IMarker createMarker(IResource res, ReturnMessage rm)
 			throws CoreException {
+		
+		//TODO verify if it can be called in a more appropriate place
+		deleteMarkers(res);
+		
 		IMarker marker = null;
 		marker = res.createMarker("br.ufrn.lets.view.MyMarkerId");
 		marker.setAttribute(IMarker.TEXT, rm.getMessage());

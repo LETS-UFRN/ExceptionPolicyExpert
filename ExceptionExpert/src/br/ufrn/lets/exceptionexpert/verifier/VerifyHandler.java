@@ -53,7 +53,7 @@ public class VerifyHandler {
 					if (!hasRuleRelated) {
 						
 						ReturnMessage rm = new ReturnMessage();
-						rm.setMessage("VIOLATION: Cannot catch this exception: " + excName.getException());
+						rm.setMessage("VIOLATION: should not be catching this exception: " + excName.getException());
 						
 						int lineNumber = astRoot.getLineNumber(methodsCatches.getKey().getStartPosition());
 						rm.setLineNumber(lineNumber);

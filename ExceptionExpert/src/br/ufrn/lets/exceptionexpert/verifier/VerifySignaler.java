@@ -32,7 +32,7 @@ public class VerifySignaler {
 					
 					if (!rulesRelatedToException.isEmpty()) {
 						ReturnMessage rm = new ReturnMessage();
-						rm.setMessage("SHOULD HANDLE: ");
+						rm.setMessage("Should be caught by: ");
 						
 						for (Rule r: rulesRelatedToException) {
 							List<String> list = r.getExceptionAndHandlers().get(excName.toString());
