@@ -6,12 +6,31 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/**
+ * Represents a ECL rule
+ * @author taiza
+ *
+ */
 public class Rule {
 
+	/**
+	 * Type of the rule (full or partial)
+	 */
 	String type;
 	
+	/**
+	 * Signaler of the rule
+	 */
 	String signaler;
 	
+	/**
+	 * Signaler type (the way the signaler is defined)
+	 */
+	private RuleElementPattern signalerPattern;
+	
+	/**
+	 * Map with the element exception and its handlers
+	 */
 	private Map<String, List<String>> exceptionAndHandlers;
 	
 	
@@ -23,6 +42,11 @@ public class Rule {
 		super();
 		this.type = type;
 		this.signaler = signaler;
+	}
+	
+	public boolean isFull() {
+		//TODO do a Enum to list the kind of rules
+		return getType().equals("full");
 	}
 	
 	public String getType() {
@@ -66,5 +90,13 @@ public class Rule {
 		}
 		
 		return toString.toString();
+	}
+
+	public RuleElementPattern getSignalerPattern() {
+		return signalerPattern;
+	}
+
+	public void setSignalerPattern(RuleElementPattern signalerPattern) {
+		this.signalerPattern = signalerPattern;
 	}
 }

@@ -3,7 +3,7 @@
 	<ehrule type = "full" signaler="p.Class">
 		<exception type="UmaExcecao">
 		<handler signature="p.Class2" />    	  
-		<handler signature="p.Class3" />    	  
+		<handler signature="p.Class4" />    	  
 		</exception>
 	</ehrule>
 	

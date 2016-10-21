@@ -6,6 +6,7 @@ import java.util.Map;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
+@Deprecated
 public class HandlerClass{
 
 	private Map<MethodDeclaration, List<CatchClause>> mapMethodTry;

@@ -17,23 +17,20 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
+import org.w3c.dom.Document;
 
 import br.ufrn.lets.exceptionexpert.ast.ParseAST;
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
-import br.ufrn.lets.exceptionexpert.models.Rule;
+import br.ufrn.lets.exceptionexpert.models.RulesRepository;
+import br.ufrn.lets.exceptionexpert.verifier.ImproperThrowingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.VerifyHandler;
-import br.ufrn.lets.exceptionexpert.verifier.VerifySignaler;
-import br.ufrn.lets.xml.ParseXML;
+import br.ufrn.lets.xml.ParseXMLECLRules;
 
 public class StartupClass implements IStartup {
 
-	List<Rule> rules;
+	List<ReturnMessage> messages = new ArrayList<ReturnMessage>();
 	
-	List<ReturnMessage> verifySignalerMessages = new ArrayList<ReturnMessage>();
-	
-	List<ReturnMessage> verifyHandlerMessages = new ArrayList<ReturnMessage>();
-
 	@Override
 	public void earlyStartup() {
 		Display.getDefault().asyncExec(new Runnable() {
@@ -41,7 +38,9 @@ public class StartupClass implements IStartup {
 		    public void run() {
 		    	
 		    	//Parse XML documentation rules
-				rules = ParseXML.parse();
+				String path = "/Users/taiza/git/ExceptionExpert/ExceptionExpert/resources/contract.xml";
+		    	Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(path);
+				RulesRepository.setRules(ParseXMLECLRules.parse(doc));
 		    	
 				//Configures the change listener
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -102,6 +101,10 @@ public class StartupClass implements IStartup {
 		});	
 	}
 	
+	/**
+	 * Method that calls the verifications
+	 * @param changedClass
+	 */
 	private void verifyHandlersAndSignalers(IResource changedClass) {
 
 		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(changedClass);
@@ -109,22 +112,20 @@ public class StartupClass implements IStartup {
 		//AST Tree from changed class
 		CompilationUnit astRoot = ParseAST.parse(compilationUnit);
 		
-		ASTExceptionRepresentation astRep = ParseAST.getThrowsStatement(astRoot);
+		ASTExceptionRepresentation astRep = ParseAST.parseClassASTToExcpetionRep(astRoot);
 
+		messages = new ArrayList<ReturnMessage>();
+		
 		System.out.println("Rule 1");
-		VerifySignaler.astRoot = astRoot;
-		verifySignalerMessages = VerifySignaler.verify(astRep, rules);
+
+		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
+		messages.addAll(improperThrowingVerifier.verify());
 
 		System.out.println("Rule 2");
-		VerifyHandler.astRoot = astRoot;
-		verifyHandlerMessages = VerifyHandler.verify(astRep, rules);
+		messages.addAll(VerifyHandler.verify(astRep, RulesRepository.getRules()));
 		
 		try {
-			//TODO improve this - create a superclass
-			for(ReturnMessage rm : verifySignalerMessages) {
-				createMarker(changedClass, rm);
-			}
-			for(ReturnMessage rm : verifyHandlerMessages) {
+			for(ReturnMessage rm : messages) {
 				createMarker(changedClass, rm);
 			}
 		} catch (CoreException e) {
@@ -134,11 +135,15 @@ public class StartupClass implements IStartup {
 			
 	}
 	
+	/**
+	 * Delete all the markers of ExceptionPolicyExpert type
+	 * @param res Resource (class) to delete the marker
+	 */
 	private static void deleteMarkers(IResource res){
 		IMarker[] problems = null;
 		int depth = IResource.DEPTH_INFINITE;
 		try {
-			problems = res.findMarkers(null, true, depth);
+			problems = res.findMarkers("br.ufrn.lets.view.ExceptionPolicyExpertId", true, depth);
 			
 			for (int i = 0; i < problems.length; i++) {
 				problems[i].delete();
@@ -149,7 +154,13 @@ public class StartupClass implements IStartup {
 		}
 	}
 	
-	public static IMarker createMarker(IResource res, ReturnMessage rm)
+	/**
+	 * Create a marker for each returned message (information or violation)
+	 * @param res Resource (class) to attach the marker
+	 * @param rm Object with the marker message and marke line
+	 * @throws CoreException
+	 */
+	public static void createMarker(IResource res, ReturnMessage rm)
 			throws CoreException {
 		
 		//TODO verify if it can be called in a more appropriate place
@@ -161,7 +172,6 @@ public class StartupClass implements IStartup {
 		marker.setAttribute(IMarker.MESSAGE, rm.getMessage());
 		marker.setAttribute(IMarker.LINE_NUMBER, rm.getLineNumber());
 		marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
-		return marker;
 	}
 	
 	
