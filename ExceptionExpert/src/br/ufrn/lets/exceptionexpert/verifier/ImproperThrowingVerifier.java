@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.eclipse.jdt.core.dom.ThrowStatement;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.MethodRepresentation;
@@ -31,6 +35,27 @@ public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 	}
 	
 	/**
+	 * Return the rule name that contains an exception that does match with the exception that the verified method throws, because this is a violation.  
+	 * @param excecaoLancadaPeloMetodo
+	 * @param rules
+	 * @return
+	 */
+	private String getRuleNameNotMatchWithMethodException(String excecaoLancadaPeloMetodo, List<Rule> rules) {
+
+		for (Rule rule : rules) {
+			Map<String, List<String>> exceptionAndHandlers = rule.getExceptionAndHandlers();
+			
+			Set<String> exceptions = exceptionAndHandlers.keySet();
+			for (String ruleException : exceptions) {
+				if (ruleException.compareTo(excecaoLancadaPeloMetodo) != 0) {
+					return rule.getId();
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
 	 * Verifies if the method name of the signaler of the rule matches with the method name of the changed class
 	 * @param rule
 	 * @param method
@@ -52,17 +77,17 @@ public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 	}
 	
 	/**
-	 * Verifies if the package/class name of the signaler of the rule matches with the package/class name of the changed class
+	 * Verifies if the package/class name of the signaler of the rule matches with the package/class name of the changed class.
+	 * The signaler should be in one of this formats:
+	 * - p1.p2.ClassName.*
+	 * - ClassName.*
+	 * - p1.p2.ClassName.methodName(..)
+	 * - ClassName.methodName(..)
 	 * @param rule
 	 * @return
 	 */
 	private boolean nameSignalerAndClassNameMatche(Rule rule) {
 		String signaler = rule.getSignaler();
-		//The signaler should be in one of this formats:
-		//p1.p2.ClassName.*
-		//ClassName.*
-		//p1.p2.ClassName.methodName(..)
-		//ClassName.methodName(..)
 		
 		signaler = signaler.replace("(..)", "");
 		String[] split = signaler.split("\\.");
@@ -143,38 +168,42 @@ public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 
 	@Override
 	public List<ReturnMessage> verify() {
+		
 		List<ReturnMessage> returnM = new ArrayList<ReturnMessage>();
 
 		if (preCondition()) {
 
 			Map<MethodRepresentation, List<Rule>> methods = getMapMethodsAndRulesRelatedToSignaler();
 			
-			System.out.println(methods);
+			Set<Entry<MethodRepresentation, List<Rule>>> entrySet = methods.entrySet();
 			
-			//TODO continuar. Para cada par do mapa, verificar se a excecao q ele lanca bate com a excecao da regra
+			for (Entry<MethodRepresentation, List<Rule>> entry : entrySet) {
+				MethodRepresentation method = entry.getKey();
+				
+				List<ThrowStatement> methodThrowStatements = method.getThrowStatements();
+
+				for(ThrowStatement methodThrow : methodThrowStatements) {
+					
+					//FIXME - Ver como pegar o nome da excecao a partir do ThrowStatement
+					String excecaoLancadaPeloMetodo = methodThrow.getExpression().toString();
+					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.replace("new ", "");
+					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.replace("()", "");
+					
+					String ruleName = getRuleNameNotMatchWithMethodException(excecaoLancadaPeloMetodo, entry.getValue());
+					if (ruleName != null) {
+						
+						LOGGER.warning("Violation detected. Rule " + ruleName + " / Class " + method.getAstRep().getTypeDeclaration().getName().toString());
+						
+						ReturnMessage rm = new ReturnMessage();
+						rm.setMessage("VIOLATION: should not be throwing the exception " + excecaoLancadaPeloMetodo + " (Policy rule " + ruleName + ")");
+						rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(methodThrow.getStartPosition()));
+						returnM.add(rm);
+					}
+						
+				}
+				
+			}
 			
-//			for(Entry<ThrowStatement, Expression> throwStatement : astRep.getSignalerRepresentation().getMapThrows().entrySet()) {
-//
-//				//Verify if some rule is related to exceptions throws by method
-//				List<Rule> rulesRelatedToException = getRulesRelatedToException(throwStatement.getKey(), rulesRelatedToSignaler);
-//
-//				if (!rulesRelatedToException.isEmpty()) {
-//					ReturnMessage rm = new ReturnMessage();
-//					rm.setMessage("Should be caught by: ");
-//
-//					for (Rule r: rulesRelatedToException) {
-//						//TODO get class name
-//						List<String> list = r.getExceptionAndHandlers().get(throwStatement.getKey().getClass().getName());
-//						for (String exc : list){
-//							rm.setMessage(rm.getMessage() + "-  "+ exc);
-//						}
-//					}
-//					int lineNumber = astRep.getAstRoot().getLineNumber(throwStatement.getKey().getStartPosition());
-//					rm.setLineNumber(lineNumber);
-//
-//					returnM.add(rm);
-//				}
-//			}
 		}
 
 		return returnM;

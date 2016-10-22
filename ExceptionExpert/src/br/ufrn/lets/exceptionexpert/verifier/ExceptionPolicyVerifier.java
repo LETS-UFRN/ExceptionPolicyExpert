@@ -2,6 +2,7 @@ package br.ufrn.lets.exceptionexpert.verifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
@@ -13,6 +14,8 @@ import br.ufrn.lets.exceptionexpert.models.RulesRepository;
  */
 public abstract class ExceptionPolicyVerifier {
 	
+	protected final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+			
 	/**
 	 * Abstract Syntax Tree representation of target class
 	 */

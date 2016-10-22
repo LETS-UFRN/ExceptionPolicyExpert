@@ -23,52 +23,62 @@ public class ImproperThrowingVerifierTest {
 	ASTExceptionRepresentation astRep;
 	
 	String javaSourceTest1 = 
-			  "package p; "
-			+ "public class Class {"
-			+ "		public void umMetodoQualquer() throws UmaExcecao { "
-			+ "			throw new UmaExcecao(); "
+			  "package p; \n"
+			+ "public class Class {\n"
+			+ "		public void umMetodoQualquer() throws UmaExcecao { \n"
+			+ "			throw new UmaExcecao(); \n"
 			+ "		}"
 			+ "}";
 
 	String javaSourceTest2 = 
-			  "package p; "
-			+ "public class Class1 {"
-			+ "		public void method1() throws UmaExcecao { "
-			+ "			throw new UmaExcecao(); "
-			+ "		}"
-			+ "		public void method2() throws UmaExcecao { "
-			+ "			throw new UmaExcecao(); "
+			  "package p; \n"
+			+ "public class Class1 \n{"
+			+ "		public void method1() throws UmaExcecao { \n"
+			+ "			throw new UmaExcecao(); \n"
+			+ "		}\n"
+			+ "		public void method2() throws UmaExcecao { \n"
+			+ "			throw new UmaExcecao(); \n"
 			+ "		}"
 			+ "}";
 
 	String javaSourceTest3 = 
-			  "package p; "
-			+ "public class Class2 {"
-			+ "		public void method1() throws UmaExcecao { "
-			+ "			throw new UmaExcecao(); "
-			+ "		}"
-			+ "		public void method2() throws OutraExcecao { "
-			+ "			throw new OutraExcecao(); "
-			+ "		}"
+			  "package p; \n"
+			+ "public class Class2 {\n"
+			+ "		public void method1() throws UmaExcecao { \n"
+			+ "			throw new UmaExcecao(); \n"
+			+ "		}\n"
+			+ "		public void method2() throws OutraExcecao { \n"
+			+ "			throw new OutraExcecao(); \n"
+			+ "		}\n"
+			+ "}";
+
+	String javaSourceTest4 = 
+			  "package anotherPackage.p; \n"
+			+ "public class Class2 {\n"
+			+ "		public void method1() throws UmaExcecao { \n"
+			+ "			throw new UmaExcecao(); \n"
+			+ "		}\n"
+			+ "		public void method2() throws OutraExcecao { \n"
+			+ "			throw new OutraExcecao(); \n"
+			+ "		}\n"
 			+ "}";
 
 	String xmlRuleTest1 = "<ecl> "
-			+ "<ehrule type = \"full\" signaler=\"p.Class.*\"> "
+			+ "<ehrule id=\"R1\" type = \"full\" signaler=\"p.Class.*\"> "
 			+ "<exception type=\"OutraExcecao\">"
 			+ "<handler signature=\"p.Class2\" />    	  "
 			+ "</exception>"
 			+ "</ehrule>"
-			+ "<ehrule type = \"full\" signaler=\"p.Class1.*\"> "
+			+ "<ehrule id=\"R2\" type = \"full\" signaler=\"p.Class1.*\"> "
 			+ "<exception type=\"OutraExcecao\">"
 			+ "<handler signature=\"p.Class2\" />    	  "
 			+ "</exception>"
 			+ "</ehrule>"
-			+ "<ehrule type = \"full\" signaler=\"p.Class2.method1(..)\"> "
+			+ "<ehrule id=\"R3\" type = \"full\" signaler=\"p.Class2.method1(..)\"> "
 			+ "<exception type=\"OutraExcecao\">"
 			+ "<handler signature=\"p.Class2\" />    	  "
 			+ "</exception>"
 			+ "</ehrule>"
-
 			+ "</ecl>";
 	
 	private void populateAST(String javaSource) {
@@ -96,7 +106,10 @@ public class ImproperThrowingVerifierTest {
 		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
 		List<ReturnMessage> verifyResult = improperThrowingVerifier.verify();
 		
-		assertEquals(verifyResult.get(0).getMessage(), "VIOLATION: should not be throwing the exception UmaExcecao");
+		assertEquals(1, verifyResult.size());
+		assertEquals(verifyResult.get(0).getMessage(), "VIOLATION: should not be throwing the exception UmaExcecao (Policy rule R1)");
+		assertEquals(verifyResult.get(0).getLineNumber(), new Integer(4));
+
 	}
 	
 	@Test
@@ -106,7 +119,14 @@ public class ImproperThrowingVerifierTest {
 		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
 		List<ReturnMessage> verifyResult = improperThrowingVerifier.verify();
 		
-		assertEquals(verifyResult.get(0).getMessage(), "VIOLATION: should not be throwing the exception UmaExcecao");
+		assertEquals(2, verifyResult.size());
+
+		assertEquals(verifyResult.get(1).getMessage(), "VIOLATION: should not be throwing the exception UmaExcecao (Policy rule R2)");
+		assertEquals(verifyResult.get(1).getLineNumber(), new Integer(4));
+
+		assertEquals(verifyResult.get(0).getMessage(), "VIOLATION: should not be throwing the exception UmaExcecao (Policy rule R2)");
+		assertEquals(verifyResult.get(0).getLineNumber(), new Integer(7));
+
 	}
 	
 	@Test
@@ -116,7 +136,22 @@ public class ImproperThrowingVerifierTest {
 		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
 		List<ReturnMessage> verifyResult = improperThrowingVerifier.verify();
 		
-		assertEquals(verifyResult.get(0).getMessage(), "VIOLATION: should not be throwing the exception UmaExcecao");
+		assertEquals(1, verifyResult.size());
+
+		assertEquals(verifyResult.get(0).getMessage(), "VIOLATION: should not be throwing the exception UmaExcecao (Policy rule R3)");
+		assertEquals(verifyResult.get(0).getLineNumber(), new Integer(4));
+
+	}
+	
+	@Test
+	public void testSameClassNameOtherPackage() {
+		populateAST(javaSourceTest4);
+		
+		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
+		List<ReturnMessage> verifyResult = improperThrowingVerifier.verify();
+		
+		assertEquals(0, verifyResult.size());
+
 	}
 
 }

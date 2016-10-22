@@ -12,16 +12,21 @@ import java.util.Set;
  *
  */
 public class Rule {
+	
+	/**
+	 * Id o the rule
+	 */
+	private String id;
 
 	/**
 	 * Type of the rule (full or partial)
 	 */
-	String type;
+	private String type;
 	
 	/**
 	 * Signaler of the rule
 	 */
-	String signaler;
+	private String signaler;
 	
 	/**
 	 * Signaler type (the way the signaler is defined)
@@ -98,5 +103,13 @@ public class Rule {
 
 	public void setSignalerPattern(RuleElementPattern signalerPattern) {
 		this.signalerPattern = signalerPattern;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 }

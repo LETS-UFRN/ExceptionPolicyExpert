@@ -77,6 +77,7 @@ public class ParseAST {
 			public boolean visit(MethodDeclaration node) {
 				MethodRepresentation mr = new MethodRepresentation();
 				mr.setMethodDeclaration(node);
+				mr.setAstRep(astRep);
 				
 				lastMethod = mr;
 				

@@ -2,6 +2,7 @@ package br.ufrn.lets;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -28,7 +29,7 @@ import br.ufrn.lets.exceptionexpert.verifier.VerifyHandler;
 import br.ufrn.lets.xml.ParseXMLECLRules;
 
 public class StartupClass implements IStartup {
-
+    
 	List<ReturnMessage> messages = new ArrayList<ReturnMessage>();
 	
 	@Override
@@ -116,8 +117,6 @@ public class StartupClass implements IStartup {
 
 		messages = new ArrayList<ReturnMessage>();
 		
-		System.out.println("Rule 1");
-
 		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
 		messages.addAll(improperThrowingVerifier.verify());
 

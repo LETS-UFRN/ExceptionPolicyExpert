@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -19,10 +20,13 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import br.ufrn.lets.exceptionexpert.exception.InvalidSyntaxException;
 import br.ufrn.lets.exceptionexpert.models.Rule;
 import br.ufrn.lets.exceptionexpert.models.RuleElementPattern;
 
 public class ParseXMLECLRules {
+
+	protected final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 	public static Document parseDocumentFromString(String stringRules) {
 		
@@ -100,38 +104,45 @@ public class ParseXMLECLRules {
 
 				Rule objRule = new Rule();
 
-				Node nNode = nList.item(temp);
+				try {
+					Node nNode = nList.item(temp);
 
-				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+					if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 
-					Element rule = (Element) nNode;
+						Element rule = (Element) nNode;
 
-					List<String> listHandlers = new ArrayList<String>();
+						List<String> listHandlers = new ArrayList<String>();
 
-					NodeList handlers = getHandlers(rule);
+						NodeList handlers = getHandlers(rule);
 
-					for (int j = 0; j < handlers.getLength(); j++) {
-						listHandlers.add(getHandler((Element) handlers.item(j)));
+						for (int j = 0; j < handlers.getLength(); j++) {
+							listHandlers.add(getHandler((Element) handlers.item(j)));
+						}
+
+						Map<String, List<String>> map = new HashMap<String, List<String>>();
+						map.put(getException(rule), listHandlers);
+
+						objRule.setId(getIdElement(rule));
+						objRule.setType(isFull(rule)? "full" : "partial");
+						objRule.setSignaler(getSignaler(rule));
+						objRule.setSignalerPattern(getSignalerPattern(objRule.getSignaler()));
+						objRule.setExceptionAndHandlers(map);
+
+						rules.add(objRule);
+
 					}
-
-					Map<String, List<String>> map = new HashMap<String, List<String>>();
-					map.put(getException(rule), listHandlers);
-
-					objRule.setType(isFull(rule)? "full" : "partial");
-					objRule.setSignaler(getSignaler(rule));
-					objRule.setSignalerPattern(getSignalerPattern(objRule.getSignaler()));
-					objRule.setExceptionAndHandlers(map);
-
-					rules.add(objRule);
-
+				} catch (InvalidSyntaxException e) {
+					LOGGER.severe(e.getLocalizedMessage());
+					LOGGER.severe("Rule " + objRule.getId() + " will not be considered");
 				}
+
 			}
 		}
 
 		return rules;
 	}
 	
-	public static RuleElementPattern getSignalerPattern(String signaler) {
+	public static RuleElementPattern getSignalerPattern(String signaler) throws InvalidSyntaxException {
 		if (signaler.compareTo("*") == 0) {
 			return RuleElementPattern.ASTERISC_WILDCARD;
 		} else if(signaler.endsWith(".*")) {
@@ -139,7 +150,7 @@ public class ParseXMLECLRules {
 		} else if(signaler.endsWith("(..)")) {
 			return RuleElementPattern.METHOD_DEFINITION;
 		}
-		return null;
+		throw new InvalidSyntaxException("Invalid format of Signaler element.");
 	}
 	
 	//TODO
@@ -148,6 +159,10 @@ public class ParseXMLECLRules {
 	
 	public static NodeList getAllRules(Document doc) {
 		return doc.getElementsByTagName("ehrule");
+	}
+	
+	public static String getIdElement(Element rule) {
+		return rule.getAttribute("id");
 	}
 	
 	public static boolean isFull(Element rule) {
