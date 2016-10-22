@@ -31,6 +31,7 @@ import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
 import br.ufrn.lets.exceptionexpert.models.RulesRepository;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperThrowingVerifier;
+import br.ufrn.lets.exceptionexpert.verifier.PossibleHandlersInformation;
 import br.ufrn.lets.exceptionexpert.verifier.VerifyHandler;
 import br.ufrn.lets.xml.ParseXMLECLRules;
 
@@ -141,6 +142,8 @@ public class StartupClass implements IStartup {
 	 */
 	private void verifyHandlersAndSignalers(IResource changedClass) {
 
+		deleteMarkers(changedClass);
+		
 		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(changedClass);
 		
 		//AST Tree from changed class
@@ -150,11 +153,15 @@ public class StartupClass implements IStartup {
 
 		messages = new ArrayList<ReturnMessage>();
 		
+		//Rule 1
 		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
 		messages.addAll(improperThrowingVerifier.verify());
 
-		System.out.println("Rule 2");
-		messages.addAll(VerifyHandler.verify(astRep, RulesRepository.getRules()));
+		//Rule 4
+		PossibleHandlersInformation possibleHandlersInformation = new PossibleHandlersInformation(astRep);
+		messages.addAll(possibleHandlersInformation.verify());
+
+//		messages.addAll(VerifyHandler.verify(astRep, RulesRepository.getRules()));
 		
 		try {
 			for(ReturnMessage rm : messages) {
@@ -196,7 +203,7 @@ public class StartupClass implements IStartup {
 	public static void createMarker(IResource res, ReturnMessage rm)
 			throws CoreException {
 		
-		deleteMarkers(res);
+//		deleteMarkers(res);
 		
 		IMarker marker = null;
 		marker = res.createMarker("br.ufrn.lets.view.ExceptionPolicyExpertId");

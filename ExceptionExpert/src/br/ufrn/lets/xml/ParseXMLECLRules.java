@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -101,18 +101,27 @@ public class ParseXMLECLRules {
 					if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 
 						Element rule = (Element) nNode;
+						Map<String, List<String>> map = new LinkedHashMap<String, List<String>>();
 
-						List<String> listHandlers = new ArrayList<String>();
+						NodeList exceptions = getExceptions(rule);
+						
+						for (int i = 0; i < exceptions.getLength(); i++) {
+							Node exception = exceptions.item(i);
+							
+							List<String> listHandlers = new ArrayList<String>();
+							NodeList handlers = getHandlers(exception);
+							
+							for (int j = 0; j < handlers.getLength(); j++) {
+								Node handler = handlers.item(j);
+								if (handler.getNodeType() == Node.ELEMENT_NODE)
+									//To prevent spaces between elements
+									//(http://stackoverflow.com/questions/20259742/why-am-i-getting-extra-text-nodes-as-child-nodes-of-root-node)
+									listHandlers.add(getHandlerName(handler));
+							}
 
-						NodeList handlers = getHandlers(rule);
-
-						for (int j = 0; j < handlers.getLength(); j++) {
-							listHandlers.add(getHandler((Element) handlers.item(j)));
+							map.put(getExceptionName(exception), listHandlers);
 						}
-
-						Map<String, List<String>> map = new HashMap<String, List<String>>();
-						map.put(getException(rule), listHandlers);
-
+						
 						objRule.setId(getIdElement(rule));
 						objRule.setType(isFull(rule)? "full" : "partial");
 						objRule.setSignaler(getSignaler(rule));
@@ -148,34 +157,36 @@ public class ParseXMLECLRules {
 	//TODO validate the syntax of all terms
 	//TODO
 	
-	public static NodeList getAllRules(Document doc) {
+	private static NodeList getAllRules(Document doc) {
 		return doc.getElementsByTagName("ehrule");
 	}
 	
-	public static String getIdElement(Element rule) {
+	private static String getIdElement(Element rule) {
 		return rule.getAttribute("id");
 	}
 	
-	public static boolean isFull(Element rule) {
+	private static boolean isFull(Element rule) {
 		return rule.getAttribute("type").equals("full");
 	}
 	
-	public static String getSignaler(Element rule) {
+	private static String getSignaler(Element rule) {
 		return rule.getAttribute("signaler");
 	}
 	
-	public static String getException(Element rule) {
-		Node item = rule.getElementsByTagName("exception").item(0);
-		return ((Element) item).getAttribute("type");
+	private static NodeList getExceptions(Element rule) {
+		return rule.getElementsByTagName("exception");
 	}
 	
-	public static NodeList getHandlers(Element rule) {
-		return rule.getElementsByTagName("handler");
+	private static NodeList getHandlers(Node exception) {
+		return exception.getChildNodes();
 	}
 	
-	public static String getHandler(Element handler) {
-		return handler.getAttribute("signature");
+	private static String getHandlerName(Node handler) {
+		return handler.getAttributes().getNamedItem("signature").getNodeValue();
 	}
 	
+	private static String getExceptionName(Node exception) {
+		return exception.getAttributes().getNamedItem("type").getNodeValue();
+	}
 	
 }

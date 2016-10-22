@@ -63,22 +63,36 @@ public class ImproperThrowingVerifierTest {
 			+ "		}\n"
 			+ "}";
 
+	String javaSourceTest5 = 
+			  "package anotherPackage.p; \n"
+			+ "public class Class4 {\n"
+			+ "		public void method1() throws UmaExcecao { \n"
+			+ "			throw new UmaExcecao(); \n"
+			+ "		}\n"
+			+ "}";
+	
 	String xmlRuleTest1 = "<ecl> "
 			+ "<ehrule id=\"R1\" type = \"full\" signaler=\"p.Class.*\"> "
-			+ "<exception type=\"OutraExcecao\">"
-			+ "<handler signature=\"p.Class2\" />    	  "
+				+ "<exception type=\"OutraExcecao\">"
+				+ "<handler signature=\"p.Class2\" />    	  "
 			+ "</exception>"
 			+ "</ehrule>"
 			+ "<ehrule id=\"R2\" type = \"full\" signaler=\"p.Class1.*\"> "
-			+ "<exception type=\"OutraExcecao\">"
-			+ "<handler signature=\"p.Class2\" />    	  "
-			+ "</exception>"
+				+ "<exception type=\"OutraExcecao\">"
+				+ "<handler signature=\"p.Class2\" />    	  "
+				+ "</exception>"
 			+ "</ehrule>"
 			+ "<ehrule id=\"R3\" type = \"full\" signaler=\"p.Class2.method1(..)\"> "
-			+ "<exception type=\"OutraExcecao\">"
-			+ "<handler signature=\"p.Class2\" />    	  "
-			+ "</exception>"
+				+ "<exception type=\"OutraExcecao\">"
+				+ "<handler signature=\"p.Class2\" />    	  "
+				+ "</exception>"
 			+ "</ehrule>"
+			+ "<ehrule id=\"R4\" type = \"partial\" signaler=\"Class4.*\"> "
+				+ "<exception type=\"OutraExcecao\">"
+				+ "<handler signature=\"p.Class2\" />    	  "
+				+ "</exception>"
+			+ "</ehrule>"
+
 			+ "</ecl>";
 	
 	private void populateAST(String javaSource) {
@@ -154,4 +168,16 @@ public class ImproperThrowingVerifierTest {
 
 	}
 
+	@Test
+	public void testPartialrule() {
+		populateAST(javaSourceTest5);
+		
+		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
+		List<ReturnMessage> verifyResult = improperThrowingVerifier.verify();
+		
+		assertEquals(0, verifyResult.size());
+
+	}
+
+	//TODO test partial rule
 }

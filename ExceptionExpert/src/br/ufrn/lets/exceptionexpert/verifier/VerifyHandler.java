@@ -13,6 +13,7 @@ import br.ufrn.lets.exceptionexpert.models.Rule;
 
 public class VerifyHandler {
 
+	//FIXME verificar se é necessaria
 	/**
 	 * Verify the second rule (Improper handling) - When a method handle an exception, but it should not
 	 * @param astRep

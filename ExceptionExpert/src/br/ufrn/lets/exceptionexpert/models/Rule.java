@@ -80,21 +80,7 @@ public class Rule {
 	
 	@Override
 	public String toString() {
-		StringBuilder toString = new StringBuilder();
-		toString.append("Tipo " + getType());
-		toString.append("signaler " + getSignaler());
-		
-		Set<Entry<String, List<String>>> entrySet = getExceptionAndHandlers().entrySet();
-		Iterator<Entry<String, List<String>>> iterator = entrySet.iterator();
-		while(iterator.hasNext()) {
-			Entry<String, List<String>> next = iterator.next();
-			toString.append("Exception " + next.getKey());
-			for (String s : next.getValue()) {
-				toString.append("     Handler " + s);
-			}
-		}
-		
-		return toString.toString();
+		return getId();
 	}
 
 	public RuleElementPattern getSignalerPattern() {
