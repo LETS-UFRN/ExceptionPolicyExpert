@@ -32,7 +32,6 @@ import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
 import br.ufrn.lets.exceptionexpert.models.RulesRepository;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperThrowingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.PossibleHandlersInformation;
-import br.ufrn.lets.exceptionexpert.verifier.VerifyHandler;
 import br.ufrn.lets.xml.ParseXMLECLRules;
 
 public class StartupClass implements IStartup {

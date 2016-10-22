@@ -1,10 +1,7 @@
 package br.ufrn.lets.exceptionexpert.models;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Represents a ECL rule
@@ -21,7 +18,7 @@ public class Rule {
 	/**
 	 * Type of the rule (full or partial)
 	 */
-	private String type;
+	private RuleTypeEnum type;
 	
 	/**
 	 * Signaler of the rule
@@ -31,7 +28,7 @@ public class Rule {
 	/**
 	 * Signaler type (the way the signaler is defined)
 	 */
-	private RuleElementPattern signalerPattern;
+	private RuleElementPatternEnum signalerPattern;
 	
 	/**
 	 * Map with the element exception and its handlers
@@ -43,22 +40,21 @@ public class Rule {
 		super();
 	}
 
-	public Rule(String type, String signaler) {
+	public Rule(RuleTypeEnum type, String signaler) {
 		super();
 		this.type = type;
 		this.signaler = signaler;
 	}
 	
 	public boolean isFull() {
-		//TODO do a Enum to list the kind of rules
-		return getType().equals("full");
+		return getType().isFull();
 	}
 	
-	public String getType() {
+	public RuleTypeEnum getType() {
 		return type;
 	}
 	
-	public void setType(String type) {
+	public void setType(RuleTypeEnum type) {
 		this.type = type;
 	}
 	
@@ -83,11 +79,11 @@ public class Rule {
 		return getId();
 	}
 
-	public RuleElementPattern getSignalerPattern() {
+	public RuleElementPatternEnum getSignalerPattern() {
 		return signalerPattern;
 	}
 
-	public void setSignalerPattern(RuleElementPattern signalerPattern) {
+	public void setSignalerPattern(RuleElementPatternEnum signalerPattern) {
 		this.signalerPattern = signalerPattern;
 	}
 

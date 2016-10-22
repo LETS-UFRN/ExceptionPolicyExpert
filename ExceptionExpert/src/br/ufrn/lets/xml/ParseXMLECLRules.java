@@ -22,7 +22,8 @@ import org.xml.sax.SAXException;
 
 import br.ufrn.lets.exceptionexpert.exception.InvalidRuleSyntaxException;
 import br.ufrn.lets.exceptionexpert.models.Rule;
-import br.ufrn.lets.exceptionexpert.models.RuleElementPattern;
+import br.ufrn.lets.exceptionexpert.models.RuleElementPatternEnum;
+import br.ufrn.lets.exceptionexpert.models.RuleTypeEnum;
 
 public class ParseXMLECLRules {
 
@@ -40,12 +41,11 @@ public class ParseXMLECLRules {
 			return doc;
 			
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		} catch (ParserConfigurationException e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		
 		return null;
@@ -123,7 +123,7 @@ public class ParseXMLECLRules {
 						}
 						
 						objRule.setId(getIdElement(rule));
-						objRule.setType(isFull(rule)? "full" : "partial");
+						objRule.setType(getRuleType(rule));
 						objRule.setSignaler(getSignaler(rule));
 						objRule.setSignalerPattern(getSignalerPattern(objRule.getSignaler()));
 						objRule.setExceptionAndHandlers(map);
@@ -142,20 +142,18 @@ public class ParseXMLECLRules {
 		return rules;
 	}
 	
-	public static RuleElementPattern getSignalerPattern(String signaler) throws InvalidRuleSyntaxException {
+	public static RuleElementPatternEnum getSignalerPattern(String signaler) throws InvalidRuleSyntaxException {
 		if (signaler.compareTo("*") == 0) {
-			return RuleElementPattern.ASTERISC_WILDCARD;
+			return RuleElementPatternEnum.ASTERISC_WILDCARD;
 		} else if(signaler.endsWith(".*")) {
-			return RuleElementPattern.CLASS_DEFINITION;
+			return RuleElementPatternEnum.CLASS_DEFINITION;
 		} else if(signaler.endsWith("(..)")) {
-			return RuleElementPattern.METHOD_DEFINITION;
+			return RuleElementPatternEnum.METHOD_DEFINITION;
 		}
 		throw new InvalidRuleSyntaxException("Invalid format of Signaler element.");
 	}
 	
-	//TODO
 	//TODO validate the syntax of all terms
-	//TODO
 	
 	private static NodeList getAllRules(Document doc) {
 		return doc.getElementsByTagName("ehrule");
@@ -165,8 +163,14 @@ public class ParseXMLECLRules {
 		return rule.getAttribute("id");
 	}
 	
-	private static boolean isFull(Element rule) {
-		return rule.getAttribute("type").equals("full");
+	private static RuleTypeEnum getRuleType(Element rule) throws InvalidRuleSyntaxException {
+		String attribute = rule.getAttribute("type");
+		if (attribute.equals("full"))
+			return RuleTypeEnum.FULL;
+		else if (attribute.equals("partial"))
+			return RuleTypeEnum.PARTIAL;
+		
+		throw new InvalidRuleSyntaxException("Invalid value for 'type' propertie");
 	}
 	
 	private static String getSignaler(Element rule) {

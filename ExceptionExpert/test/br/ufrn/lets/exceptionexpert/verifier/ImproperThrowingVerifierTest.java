@@ -179,5 +179,4 @@ public class ImproperThrowingVerifierTest {
 
 	}
 
-	//TODO test partial rule
 }

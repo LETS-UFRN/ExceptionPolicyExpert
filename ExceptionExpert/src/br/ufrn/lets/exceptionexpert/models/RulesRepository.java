@@ -30,8 +30,6 @@ public class RulesRepository {
 	}
 
 	private static void processRules() {
-		// TODO Auto-generated method stub
-		
 		signalersWildcardAll = new ArrayList<Rule>();
 		signalersDeterminedClass = new ArrayList<Rule>();
 		signalersDeterminedMethod = new ArrayList<Rule>();
@@ -42,19 +40,19 @@ public class RulesRepository {
 
 		for (Rule rule : getRules()) {
 			
-			if (rule.getSignalerPattern().compareTo(RuleElementPattern.ASTERISC_WILDCARD) == 0) {
+			if (rule.getSignalerPattern().compareTo(RuleElementPatternEnum.ASTERISC_WILDCARD) == 0) {
 				signalersWildcardAll.add(rule);
 				
 				if (rule.isFull())
 					signalersWildcardAllTypeFull.add(rule);
 				
-			} else if (rule.getSignalerPattern().compareTo(RuleElementPattern.CLASS_DEFINITION) == 0) {
+			} else if (rule.getSignalerPattern().compareTo(RuleElementPatternEnum.CLASS_DEFINITION) == 0) {
 				signalersDeterminedClass.add(rule);
 				
 				if (rule.isFull())
 					getSignalersDeterminedClassTypeFull().add(rule);
 
-			} else if (rule.getSignalerPattern().compareTo(RuleElementPattern.METHOD_DEFINITION) == 0) {
+			} else if (rule.getSignalerPattern().compareTo(RuleElementPatternEnum.METHOD_DEFINITION) == 0) {
 				signalersDeterminedMethod.add(rule);
 				
 				if (rule.isFull())
