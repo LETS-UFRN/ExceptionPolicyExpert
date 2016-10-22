@@ -20,7 +20,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import br.ufrn.lets.exceptionexpert.exception.InvalidSyntaxException;
+import br.ufrn.lets.exceptionexpert.exception.InvalidRuleSyntaxException;
 import br.ufrn.lets.exceptionexpert.models.Rule;
 import br.ufrn.lets.exceptionexpert.models.RuleElementPattern;
 
@@ -55,31 +55,22 @@ public class ParseXMLECLRules {
 	 * Compile the rules (which is the filePath) to transform into a XML structure 
 	 * @param filePath
 	 * @return
+	 * @throws ParserConfigurationException 
+	 * @throws IOException 
+	 * @throws SAXException 
 	 */
-	public static Document parseDocumentFromXMLFile(String filePath) {
-		
-		try {
-			File fXmlFile = new File(filePath);
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dBuilder;
+	public static Document parseDocumentFromXMLFile(String filePath) throws ParserConfigurationException, SAXException, IOException {
 
-			dBuilder = dbFactory.newDocumentBuilder();
+		File fXmlFile = new File(filePath);
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder;
 
-			Document doc = dBuilder.parse(fXmlFile);
+		dBuilder = dbFactory.newDocumentBuilder();
 
-			
-			return doc;
-			
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO: handle exception
-		} catch (ParserConfigurationException e) {
-			// TODO: handle exception
-		}
-		
-		return null;
+		Document doc = dBuilder.parse(fXmlFile);
+
+		return doc;
+
 	}
 	
 	/**
@@ -131,7 +122,7 @@ public class ParseXMLECLRules {
 						rules.add(objRule);
 
 					}
-				} catch (InvalidSyntaxException e) {
+				} catch (InvalidRuleSyntaxException e) {
 					LOGGER.severe(e.getLocalizedMessage());
 					LOGGER.severe("Rule " + objRule.getId() + " will not be considered");
 				}
@@ -142,7 +133,7 @@ public class ParseXMLECLRules {
 		return rules;
 	}
 	
-	public static RuleElementPattern getSignalerPattern(String signaler) throws InvalidSyntaxException {
+	public static RuleElementPattern getSignalerPattern(String signaler) throws InvalidRuleSyntaxException {
 		if (signaler.compareTo("*") == 0) {
 			return RuleElementPattern.ASTERISC_WILDCARD;
 		} else if(signaler.endsWith(".*")) {
@@ -150,7 +141,7 @@ public class ParseXMLECLRules {
 		} else if(signaler.endsWith("(..)")) {
 			return RuleElementPattern.METHOD_DEFINITION;
 		}
-		throw new InvalidSyntaxException("Invalid format of Signaler element.");
+		throw new InvalidRuleSyntaxException("Invalid format of Signaler element.");
 	}
 	
 	//TODO

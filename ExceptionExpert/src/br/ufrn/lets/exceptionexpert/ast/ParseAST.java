@@ -41,22 +41,12 @@ public class ParseAST {
 	 * @return
 	 */
 	public static ASTExceptionRepresentation parseClassASTToExcpetionRep(CompilationUnit astRoot) {
-		
+		//Ref: http://www.programcreek.com/2012/06/insertadd-statements-to-java-source-code-by-using-eclipse-jdt-astrewrite/
+		//Ref: http://www.programcreek.com/java-api-examples/index.php?api=org.eclipse.jdt.core.dom.MethodDeclaration
+
 		final ASTExceptionRepresentation astRep = new ASTExceptionRepresentation();
 		
 		astRep.setAstRoot(astRoot);
-		
-//		final Map<ThrowStatement, Expression> mapThrows = new HashMap<ThrowStatement, Expression>();
-//		
-//		final Map<MethodDeclaration, List<CatchClause>> mapMethodTry = new HashMap<MethodDeclaration, List<CatchClause>>();
-		
-		//Ref: http://www.programcreek.com/2012/06/insertadd-statements-to-java-source-code-by-using-eclipse-jdt-astrewrite/
-//		TypeDeclaration typeDecl = (TypeDeclaration) astRoot.types().get(0);
-//		MethodDeclaration methodDecl = typeDecl.getMethods()[0]; //TODO aqui so pega o primeiro metodo. Iterar sobre todos
-//		Block block = methodDecl.getBody();
-//		System.out.println(block);
-		
-		//Ref: http://www.programcreek.com/java-api-examples/index.php?api=org.eclipse.jdt.core.dom.MethodDeclaration
 		
 		final CompilationUnit astRootFinal = astRoot;
 

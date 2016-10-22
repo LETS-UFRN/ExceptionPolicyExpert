@@ -1,10 +1,15 @@
 package br.ufrn.lets;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -19,6 +24,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import br.ufrn.lets.exceptionexpert.ast.ParseAST;
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
@@ -30,6 +36,8 @@ import br.ufrn.lets.xml.ParseXMLECLRules;
 
 public class StartupClass implements IStartup {
     
+	protected final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
 	List<ReturnMessage> messages = new ArrayList<ReturnMessage>();
 	
 	@Override
@@ -37,11 +45,6 @@ public class StartupClass implements IStartup {
 		Display.getDefault().asyncExec(new Runnable() {
 		    @Override
 		    public void run() {
-		    	
-		    	//Parse XML documentation rules
-				String path = "/Users/taiza/git/ExceptionExpert/ExceptionExpert/resources/contract.xml";
-		    	Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(path);
-				RulesRepository.setRules(ParseXMLECLRules.parse(doc));
 		    	
 				//Configures the change listener
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -56,7 +59,7 @@ public class StartupClass implements IStartup {
 						
 						//List with all .java changed files
 						final ArrayList<IResource> changedClasses = new ArrayList<IResource>();
-						
+
 						//Visit the children to get all .java changed files
 						IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
 							public boolean visit(IResourceDelta delta) {
@@ -80,16 +83,46 @@ public class StartupClass implements IStartup {
 						try {
 							rootDelta.accept(visitor);
 						} catch (CoreException e) {
-							// TODO Auto-generated catch block
+							LOGGER.severe("Something wrong happened when processing modified files.");
 							e.printStackTrace();
 						}
 				         
 						if (!changedClasses.isEmpty()) {
-							//If there are changed files
+							
+							List<IProject> projects = new ArrayList<IProject>();
+
 							for (IResource changedClass : changedClasses) {
-								//Call the verifier for each changed class
-								verifyHandlersAndSignalers(changedClass);
+								IProject project = changedClass.getProject();
+								
+								if(!projects.contains(project))
+									projects.add(project);
 							}
+							
+							try{
+								for (IProject project : projects) {
+									//FIXME discover when the XML file was last modified, to verify if need to compile it
+									IFile file = project.getFile("/src-gen/contract.xml");
+									Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(file.getLocation().toString());
+									RulesRepository.setRules(ParseXMLECLRules.parse(doc));
+								}
+								
+								//If there are changed files
+								for (IResource changedClass : changedClasses) {
+									//Call the verifier for each changed class
+									verifyHandlersAndSignalers(changedClass);
+								}
+								
+							} catch (IOException e) {
+								LOGGER.severe("The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted.");
+								e.printStackTrace();
+							} catch (SAXException e) {
+								LOGGER.severe("Invalid format of contract.xml file. Plug-in aborted.");
+								e.printStackTrace();
+							} catch (ParserConfigurationException e) {
+								LOGGER.severe("Invalid format of contract.xml file. Plug-in aborted.");
+								e.printStackTrace();
+							}
+							
 						}
 						
 					}
@@ -128,7 +161,7 @@ public class StartupClass implements IStartup {
 				createMarker(changedClass, rm);
 			}
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
+			LOGGER.severe("Something wrong happend when creating markers.");
 			e.printStackTrace();
 		}
 			
@@ -149,6 +182,7 @@ public class StartupClass implements IStartup {
 			}
 
 		} catch (CoreException e) {
+			LOGGER.severe("Something wrong happend when deleting markers.");
 			e.printStackTrace();
 		}
 	}
@@ -162,7 +196,6 @@ public class StartupClass implements IStartup {
 	public static void createMarker(IResource res, ReturnMessage rm)
 			throws CoreException {
 		
-		//TODO verify if it can be called in a more appropriate place
 		deleteMarkers(res);
 		
 		IMarker marker = null;
