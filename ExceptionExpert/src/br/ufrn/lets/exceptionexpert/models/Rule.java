@@ -35,7 +35,6 @@ public class Rule {
 	 */
 	private Map<String, List<String>> exceptionAndHandlers;
 	
-	
 	public Rule() {
 		super();
 	}

@@ -22,7 +22,11 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -32,6 +36,7 @@ import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
 import br.ufrn.lets.exceptionexpert.models.RulesRepository;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperThrowingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.PossibleHandlersInformation;
+import br.ufrn.lets.view.ExceptionExpertView;
 import br.ufrn.lets.xml.ParseXMLECLRules;
 
 public class StartupClass implements IStartup {
@@ -45,6 +50,15 @@ public class StartupClass implements IStartup {
 		Display.getDefault().asyncExec(new Runnable() {
 		    @Override
 		    public void run() {
+		    	
+		    	
+		    	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			    IEditorPart part = page.getActiveEditor();
+			    if (!(part instanceof AbstractTextEditor))
+			      return;
+
+		    	ExceptionExpertView view = (ExceptionExpertView) page.findView(ExceptionExpertView.ID);
+				view.getTextView().setText("Iniciando ExceptionPolicyExpert Plug-in...");
 		    	
 				//Configures the change listener
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();

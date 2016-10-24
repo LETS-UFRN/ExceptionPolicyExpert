@@ -47,7 +47,26 @@ public class ASTExceptionRepresentation {
 		
 		return hasThrows;
 	}
-	
+
+	/**
+	 * Verifies if some method of this class has a catch statement
+	 * @return True if exists, false otherwise
+	 */
+	public boolean hasCatchStatements() {
+		boolean hasCatch = false;
+		
+		if (methods != null && methods.size() > 0) {
+			for (MethodRepresentation mr : methods) {
+				if (mr.getCatchClauses() != null && mr.getCatchClauses().size() > 0) {
+					hasCatch = true;
+					break;
+				}
+			}
+ 		}
+		
+		return hasCatch;
+	}
+
 	public ASTExceptionRepresentation() {
 		methods = new ArrayList<MethodRepresentation>();
 	}
