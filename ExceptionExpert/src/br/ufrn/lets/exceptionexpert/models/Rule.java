@@ -34,7 +34,12 @@ public class Rule {
 	 * Map with the element exception and its handlers
 	 */
 	private Map<String, List<String>> exceptionAndHandlers;
-	
+
+	/**
+	 * Map with the element exception and elements that cannot handle the exception
+	 */
+	private Map<String, List<String>> exceptionAndCannotHandle;
+
 	public Rule() {
 		super();
 	}
@@ -92,5 +97,13 @@ public class Rule {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public Map<String, List<String>> getExceptionAndCannotHandle() {
+		return exceptionAndCannotHandle;
+	}
+
+	public void setExceptionAndCannotHandle(Map<String, List<String>> exceptionAndCannotHandle) {
+		this.exceptionAndCannotHandle = exceptionAndCannotHandle;
 	}
 }

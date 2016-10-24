@@ -43,24 +43,6 @@ public abstract class ExceptionPolicyVerifier {
 	protected abstract List<ReturnMessage> verify();
 	
 	/**
-	 * Return a list containing only the rules of type "full"
-	 * @return
-	 */
-	protected List<Rule> getOnlyFullRules() {
-		
-		//TODO maybe this method is not necessary
-		
-		List<Rule> fullRules = new ArrayList<Rule>();
-		
-		for (Rule rule : RulesRepository.getRules()) {
-			if (rule.isFull()) {
-				fullRules.add(rule);
-			}
-		}
-		return fullRules;
-	}
-	
-	/**
 	 * Return all methods that throw exception and that there is a full rule related to it
 	 * @return Map whose key is the method and the value is a list of rules related to it
 	 */

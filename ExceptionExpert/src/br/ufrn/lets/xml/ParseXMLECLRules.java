@@ -102,6 +102,7 @@ public class ParseXMLECLRules {
 
 						Element rule = (Element) nNode;
 						Map<String, List<String>> map = new LinkedHashMap<String, List<String>>();
+						Map<String, List<String>> mapCannotHandle = new LinkedHashMap<String, List<String>>();
 
 						NodeList exceptions = getExceptions(rule);
 						
@@ -109,6 +110,7 @@ public class ParseXMLECLRules {
 							Node exception = exceptions.item(i);
 							
 							List<String> listHandlers = new ArrayList<String>();
+							List<String> listCannotHandle = new ArrayList<String>();
 							NodeList handlers = getHandlers(exception);
 							
 							for (int j = 0; j < handlers.getLength(); j++) {
@@ -116,10 +118,21 @@ public class ParseXMLECLRules {
 								if (handler.getNodeType() == Node.ELEMENT_NODE)
 									//To prevent spaces between elements
 									//(http://stackoverflow.com/questions/20259742/why-am-i-getting-extra-text-nodes-as-child-nodes-of-root-node)
-									listHandlers.add(getHandlerName(handler));
+									
+									if (handler.getNodeName().compareTo("handler") == 0) {
+										listHandlers.add(getHandlerName(handler));
+										
+									} else if (handler.getNodeName().compareTo("cannot-handle") == 0) {
+										listCannotHandle.add(getHandlerName(handler));
+										
+									} else {
+										throw new InvalidRuleSyntaxException("Invalid syntax for handler / cannotHandle element");
+									}
+									
 							}
 
 							map.put(getExceptionName(exception), listHandlers);
+							mapCannotHandle.put(getExceptionName(exception), listCannotHandle);
 						}
 						
 						objRule.setId(getIdElement(rule));
@@ -127,6 +140,7 @@ public class ParseXMLECLRules {
 						objRule.setSignaler(getSignaler(rule));
 						objRule.setSignalerPattern(getSignalerPattern(objRule.getSignaler()));
 						objRule.setExceptionAndHandlers(map);
+						objRule.setExceptionAndCannotHandle(mapCannotHandle);
 
 						rules.add(objRule);
 

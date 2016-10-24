@@ -34,6 +34,7 @@ import br.ufrn.lets.exceptionexpert.ast.ParseAST;
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
 import br.ufrn.lets.exceptionexpert.models.RulesRepository;
+import br.ufrn.lets.exceptionexpert.verifier.ImproperHandlingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperThrowingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.PossibleHandlersInformation;
 import br.ufrn.lets.view.ExceptionExpertView;
@@ -51,15 +52,14 @@ public class StartupClass implements IStartup {
 		    @Override
 		    public void run() {
 		    	
-		    	
 		    	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			    IEditorPart part = page.getActiveEditor();
 			    if (!(part instanceof AbstractTextEditor))
 			      return;
 
-		    	ExceptionExpertView view = (ExceptionExpertView) page.findView(ExceptionExpertView.ID);
-				view.getTextView().setText("Iniciando ExceptionPolicyExpert Plug-in...");
-		    	
+			    ExceptionExpertView view = (ExceptionExpertView) page.findView(ExceptionExpertView.ID);
+			    view.getTextView().setText("Iniciando ExceptionPolicyExpert Plug-in...");
+				
 				//Configures the change listener
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
 				IResourceChangeListener listener = new IResourceChangeListener() {
@@ -126,12 +126,18 @@ public class StartupClass implements IStartup {
 									verifyHandlersAndSignalers(changedClass);
 								}
 								
+							} catch (CoreException e) {
+								LOGGER.severe("The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted.");
+								e.printStackTrace();
+								
 							} catch (IOException e) {
 								LOGGER.severe("The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted.");
 								e.printStackTrace();
+								
 							} catch (SAXException e) {
 								LOGGER.severe("Invalid format of contract.xml file. Plug-in aborted.");
 								e.printStackTrace();
+								
 							} catch (ParserConfigurationException e) {
 								LOGGER.severe("Invalid format of contract.xml file. Plug-in aborted.");
 								e.printStackTrace();
@@ -145,6 +151,7 @@ public class StartupClass implements IStartup {
 				
 				//Plug the listener in the workspace
 				workspace.addResourceChangeListener(listener, IResourceChangeEvent.POST_BUILD);
+				
 		    }
 		});	
 	}
@@ -153,7 +160,7 @@ public class StartupClass implements IStartup {
 	 * Method that calls the verifications
 	 * @param changedClass
 	 */
-	private void verifyHandlersAndSignalers(IResource changedClass) {
+	private void verifyHandlersAndSignalers(IResource changedClass) throws CoreException {
 
 		deleteMarkers(changedClass);
 		
@@ -170,6 +177,10 @@ public class StartupClass implements IStartup {
 		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
 		messages.addAll(improperThrowingVerifier.verify());
 
+		//Rule 3
+		ImproperHandlingVerifier improperHandlingVerifier = new ImproperHandlingVerifier(astRep);
+		messages.addAll(improperHandlingVerifier.verify());
+
 		//Rule 4
 		PossibleHandlersInformation possibleHandlersInformation = new PossibleHandlersInformation(astRep);
 		messages.addAll(possibleHandlersInformation.verify());
@@ -183,6 +194,7 @@ public class StartupClass implements IStartup {
 		} catch (CoreException e) {
 			LOGGER.severe("Something wrong happend when creating markers.");
 			e.printStackTrace();
+			throw e;
 		}
 			
 	}
@@ -190,8 +202,9 @@ public class StartupClass implements IStartup {
 	/**
 	 * Delete all the markers of ExceptionPolicyExpert type
 	 * @param res Resource (class) to delete the marker
+	 * @throws CoreException 
 	 */
-	private static void deleteMarkers(IResource res){
+	private static void deleteMarkers(IResource res) throws CoreException{
 		IMarker[] problems = null;
 		int depth = IResource.DEPTH_INFINITE;
 		try {
@@ -204,6 +217,7 @@ public class StartupClass implements IStartup {
 		} catch (CoreException e) {
 			LOGGER.severe("Something wrong happend when deleting markers.");
 			e.printStackTrace();
+			throw e;
 		}
 	}
 	

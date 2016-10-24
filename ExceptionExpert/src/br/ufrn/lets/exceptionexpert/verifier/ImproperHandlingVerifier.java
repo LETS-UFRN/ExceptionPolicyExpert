@@ -3,21 +3,21 @@ package br.ufrn.lets.exceptionexpert.verifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
-import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.CatchClause;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.MethodRepresentation;
 import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
 import br.ufrn.lets.exceptionexpert.models.Rule;
+import br.ufrn.lets.exceptionexpert.models.RulesRepository;
 
 /**
  * This class verifies if a method handles an exception improperly. 
  * This happens when there are a rule that determined that the signaler "cannotHandle" this exception.
  *
- * This is the third proposed verification.
+ * This is the second proposed verification.
  */
 public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 	
@@ -33,19 +33,22 @@ public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 	
 	/**
 	 * Return the rule name that contains an exception that does match with the exception that the verified method throws, because this is a violation.  
-	 * @param excecaoLancadaPeloMetodo
+	 * @param method 
+	 * @param excecaoCapturadaPeloMetodo
 	 * @param rules
 	 * @return
 	 */
-	private String getRuleNameNotMatchWithMethodException(String excecaoLancadaPeloMetodo, List<Rule> rules) {
+	private Rule getRuleNameMatchWithMethodException(MethodRepresentation method, CatchClause excecaoCapturadaPeloMetodo, List<Rule> rules) {
 
 		for (Rule rule : rules) {
-			Map<String, List<String>> exceptionAndHandlers = rule.getExceptionAndHandlers();
+			Map<String, List<String>> exceptionAndCannotHandle = rule.getExceptionAndCannotHandle();
 			
-			Set<String> exceptions = exceptionAndHandlers.keySet();
+			Set<String> exceptions = exceptionAndCannotHandle.keySet();
+			
+			
 			for (String ruleException : exceptions) {
-				if (ruleException.compareTo(excecaoLancadaPeloMetodo) != 0) {
-					return rule.getId();
+				if (ruleException.compareTo(excecaoCapturadaPeloMetodo.getException().getType().toString()) == 0) {
+					return rule;
 				}
 			}
 		}
@@ -59,36 +62,44 @@ public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 
 		if (preCondition()) {
 
-			Map<MethodRepresentation, List<Rule>> methods = getMapMethodsAndRulesRelatedToSignaler(false);
+			//Get all rules with signaler = "*"
+			List<Rule> rulesWithCannot = new ArrayList<>();
+			List<Rule> signalersWildcardAll = RulesRepository.getSignalersWildcardAll();
 			
-			Set<Entry<MethodRepresentation, List<Rule>>> entrySet = methods.entrySet();
+			//GEt all rules that have cannothandler
+			for (Rule r : signalersWildcardAll) {
+				if (r.getExceptionAndCannotHandle() != null && r.getExceptionAndCannotHandle().size() > 0)
+					rulesWithCannot.add(r);
+			}
 			
-			for (Entry<MethodRepresentation, List<Rule>> entry : entrySet) {
-				MethodRepresentation method = entry.getKey();
+			if (rulesWithCannot != null) {
 				
-				List<ThrowStatement> methodThrowStatements = method.getThrowStatements();
+				for (MethodRepresentation method : astRep.getMethods()) {
+					
+					List<CatchClause> methodCatchesStatements = method.getCatchClauses();
 
-				for(ThrowStatement methodThrow : methodThrowStatements) {
-					
-					//FIXME - Ver como pegar o nome da excecao a partir do ThrowStatement
-					String excecaoLancadaPeloMetodo = methodThrow.getExpression().toString();
-					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.replace("new ", "");
-					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.replace("()", "");
-					
-					String ruleName = getRuleNameNotMatchWithMethodException(excecaoLancadaPeloMetodo, entry.getValue());
-					if (ruleName != null) {
+					for(CatchClause catchClause : methodCatchesStatements) {
 						
-						LOGGER.warning("Violation detected. Rule " + ruleName + " / Class " + method.getAstRep().getTypeDeclaration().getName().toString());
+						//Get rules related to exception
+						Rule ruleName = getRuleNameMatchWithMethodException(method, catchClause, rulesWithCannot);
 						
-						ReturnMessage rm = new ReturnMessage();
-						rm.setMessage("VIOLATION: should not be throwing the exception " + excecaoLancadaPeloMetodo + " (Policy rule " + ruleName + ")");
-						rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(methodThrow.getStartPosition()));
-						returnM.add(rm);
+						if (ruleName != null) {
+							
+							LOGGER.warning("Violation detected. Rule " + ruleName + " / Class " + method.getAstRep().getTypeDeclaration().getName().toString());
+							
+							ReturnMessage rm = new ReturnMessage();
+							rm.setMessage("VIOLATION: should not be catching the exception " + catchClause.getException().getType().toString() + " (Policy rule " + ruleName + ")");
+							rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(catchClause.getStartPosition()));
+							returnM.add(rm);
+						}
+							
 					}
-						
+					
 				}
 				
 			}
+			
+			
 			
 		}
 
