@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
@@ -22,8 +24,8 @@ import br.ufrn.lets.exceptionexpert.models.Rule;
  */
 public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 	
-	public ImproperThrowingVerifier(ASTExceptionRepresentation astRep) {
-		super(astRep);
+	public ImproperThrowingVerifier(ASTExceptionRepresentation astRep, ILog log) {
+		super(astRep, log);
 	}
 
 	@Override
@@ -74,13 +76,16 @@ public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 					//FIXME - Ver como pegar o nome da excecao a partir do ThrowStatement
 					String excecaoLancadaPeloMetodo = methodThrow.getExpression().toString();
 					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.replace("new ", "");
-					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.replace("()", "");
+					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.split("\\(")[0];
 					
 					String ruleName = getRuleNameNotMatchWithMethodException(excecaoLancadaPeloMetodo, entry.getValue());
 					if (ruleName != null) {
 						
-						LOGGER.warning("Violation detected. Rule " + ruleName + " / Class " + method.getAstRep().getTypeDeclaration().getName().toString());
-						
+				    	getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "Violation detected (ImproperThrowingVerifier). Rule: " + ruleName + 
+				    			" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
+				    			" / Method: " + method.getMethodDeclaration().getName().toString() +
+				    			" / Exception: " + excecaoLancadaPeloMetodo));
+
 						ReturnMessage rm = new ReturnMessage();
 						rm.setMessage("VIOLATION: should not be throwing the exception " + excecaoLancadaPeloMetodo + " (Policy rule " + ruleName + ")");
 						rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(methodThrow.getStartPosition()));

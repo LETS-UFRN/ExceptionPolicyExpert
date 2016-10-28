@@ -18,6 +18,8 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -37,8 +39,8 @@ import br.ufrn.lets.exceptionexpert.models.RulesRepository;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperHandlingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperThrowingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.PossibleHandlersInformation;
-import br.ufrn.lets.view.ExceptionExpertView;
 import br.ufrn.lets.xml.ParseXMLECLRules;
+import exceptionexpert.Activator;
 
 public class StartupClass implements IStartup {
     
@@ -46,19 +48,24 @@ public class StartupClass implements IStartup {
 
 	List<ReturnMessage> messages = new ArrayList<ReturnMessage>();
 	
+	//http://stackoverflow.com/questions/28481943/proper-logging-for-eclipse-plug-in-development
+	private ILog log = Activator.getDefault().getLog();
+	
 	@Override
 	public void earlyStartup() {
 		Display.getDefault().asyncExec(new Runnable() {
 		    @Override
 		    public void run() {
 		    	
+		    	
+		    	log.log(new Status(Status.INFO, "br.ufrn.lets.exceptionExpert", "Initializing ExceptionPolicyExpert Plug-in..."));
+		    	
 		    	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			    IEditorPart part = page.getActiveEditor();
 			    if (!(part instanceof AbstractTextEditor))
 			      return;
 
-			    ExceptionExpertView view = (ExceptionExpertView) page.findView(ExceptionExpertView.ID);
-			    view.getTextView().setText("Iniciando ExceptionPolicyExpert Plug-in...");
+//			    ExceptionExpertView view = (ExceptionExpertView) page.findView(ExceptionExpertView.ID);
 				
 				//Configures the change listener
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -97,7 +104,7 @@ public class StartupClass implements IStartup {
 						try {
 							rootDelta.accept(visitor);
 						} catch (CoreException e) {
-							LOGGER.severe("Something wrong happened when processing modified files.");
+					    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "Something wrong happened when processing modified files. " + e.getLocalizedMessage()));
 							e.printStackTrace();
 						}
 				         
@@ -127,19 +134,19 @@ public class StartupClass implements IStartup {
 								}
 								
 							} catch (CoreException e) {
-								LOGGER.severe("The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted.");
+						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted. " + e.getLocalizedMessage()));
 								e.printStackTrace();
 								
 							} catch (IOException e) {
-								LOGGER.severe("The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted.");
+						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted. " + e.getLocalizedMessage()));
 								e.printStackTrace();
 								
 							} catch (SAXException e) {
-								LOGGER.severe("Invalid format of contract.xml file. Plug-in aborted.");
+						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "Invalid format of contract.xml file. Plug-in aborted. " + e.getLocalizedMessage()));
 								e.printStackTrace();
 								
 							} catch (ParserConfigurationException e) {
-								LOGGER.severe("Invalid format of contract.xml file. Plug-in aborted.");
+						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "Invalid format of contract.xml file. Plug-in aborted. " + e.getLocalizedMessage()));
 								e.printStackTrace();
 							}
 							
@@ -174,25 +181,23 @@ public class StartupClass implements IStartup {
 		messages = new ArrayList<ReturnMessage>();
 		
 		//Rule 1
-		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
+		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep, log);
 		messages.addAll(improperThrowingVerifier.verify());
 
 		//Rule 3
-		ImproperHandlingVerifier improperHandlingVerifier = new ImproperHandlingVerifier(astRep);
+		ImproperHandlingVerifier improperHandlingVerifier = new ImproperHandlingVerifier(astRep, log);
 		messages.addAll(improperHandlingVerifier.verify());
 
 		//Rule 4
-		PossibleHandlersInformation possibleHandlersInformation = new PossibleHandlersInformation(astRep);
+		PossibleHandlersInformation possibleHandlersInformation = new PossibleHandlersInformation(astRep, log);
 		messages.addAll(possibleHandlersInformation.verify());
 
-//		messages.addAll(VerifyHandler.verify(astRep, RulesRepository.getRules()));
-		
 		try {
 			for(ReturnMessage rm : messages) {
 				createMarker(changedClass, rm);
 			}
 		} catch (CoreException e) {
-			LOGGER.severe("Something wrong happend when creating markers.");
+	    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
 			e.printStackTrace();
 			throw e;
 		}
@@ -204,20 +209,13 @@ public class StartupClass implements IStartup {
 	 * @param res Resource (class) to delete the marker
 	 * @throws CoreException 
 	 */
-	private static void deleteMarkers(IResource res) throws CoreException{
+	private static void deleteMarkers(IResource res) throws CoreException {
 		IMarker[] problems = null;
 		int depth = IResource.DEPTH_INFINITE;
-		try {
-			problems = res.findMarkers("br.ufrn.lets.view.ExceptionPolicyExpertId", true, depth);
-			
-			for (int i = 0; i < problems.length; i++) {
-				problems[i].delete();
-			}
+		problems = res.findMarkers("br.ufrn.lets.view.ExceptionPolicyExpertId", true, depth);
 
-		} catch (CoreException e) {
-			LOGGER.severe("Something wrong happend when deleting markers.");
-			e.printStackTrace();
-			throw e;
+		for (int i = 0; i < problems.length; i++) {
+			problems[i].delete();
 		}
 	}
 	
@@ -230,14 +228,20 @@ public class StartupClass implements IStartup {
 	public static void createMarker(IResource res, ReturnMessage rm)
 			throws CoreException {
 		
-//		deleteMarkers(res);
-		
 		IMarker marker = null;
 		marker = res.createMarker("br.ufrn.lets.view.ExceptionPolicyExpertId");
 		marker.setAttribute(IMarker.TEXT, rm.getMessage());
 		marker.setAttribute(IMarker.MESSAGE, rm.getMessage());
 		marker.setAttribute(IMarker.LINE_NUMBER, rm.getLineNumber());
 		marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
+	}
+
+	public ILog getLog() {
+		return log;
+	}
+
+	public void setLog(ILog log) {
+		this.log = log;
 	}
 	
 	

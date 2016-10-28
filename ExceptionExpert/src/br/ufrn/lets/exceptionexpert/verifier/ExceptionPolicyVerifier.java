@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.ILog;
+
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.MethodRepresentation;
 import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
@@ -25,9 +27,12 @@ public abstract class ExceptionPolicyVerifier {
 	 */
 	ASTExceptionRepresentation astRep;
 	
-	public ExceptionPolicyVerifier(ASTExceptionRepresentation astRep) {
+	private ILog log;
+	
+	public ExceptionPolicyVerifier(ASTExceptionRepresentation astRep, ILog log) {
 		super();
 		this.astRep = astRep;
+		this.log = log;
 	}
 
 	/**
@@ -171,6 +176,14 @@ public abstract class ExceptionPolicyVerifier {
 
 	public void setAstRep(ASTExceptionRepresentation astRep) {
 		this.astRep = astRep;
+	}
+
+	public ILog getLog() {
+		return log;
+	}
+
+	public void setLog(ILog log) {
+		this.log = log;
 	}
 	
 }

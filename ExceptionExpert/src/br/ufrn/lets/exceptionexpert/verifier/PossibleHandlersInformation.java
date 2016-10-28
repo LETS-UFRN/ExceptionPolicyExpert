@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
@@ -22,8 +24,8 @@ import br.ufrn.lets.exceptionexpert.models.Rule;
  */
 public class PossibleHandlersInformation extends ExceptionPolicyVerifier {
 	
-	public PossibleHandlersInformation(ASTExceptionRepresentation astRep) {
-		super(astRep);
+	public PossibleHandlersInformation(ASTExceptionRepresentation astRep, ILog log) {
+		super(astRep, log);
 	}
 
 	@Override
@@ -90,15 +92,18 @@ public class PossibleHandlersInformation extends ExceptionPolicyVerifier {
 					//FIXME - Ver como pegar o nome da excecao a partir do ThrowStatement
 					String excecaoLancadaPeloMetodo = methodThrow.getExpression().toString();
 					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.replace("new ", "");
-					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.replace("()", "");
+					excecaoLancadaPeloMetodo = excecaoLancadaPeloMetodo.split("\\(")[0];
 					
 					Rule ruleName = getRuleNameMatchWithMethodException(excecaoLancadaPeloMetodo, entry.getValue());
 					
 					if (ruleName != null) {
 						List<String> handlers = ruleName.getExceptionAndHandlers().get(excecaoLancadaPeloMetodo);
 						
-						LOGGER.info("Handling information detected. Rule " + ruleName.getId() + " / Class " + method.getAstRep().getTypeDeclaration().getName().toString());
-						
+				    	getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "Handling information detected (PossibleHandlersInformation). Rule: " + ruleName + 
+				    			" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
+				    			" / Method: " + method.getMethodDeclaration().getName().toString() +
+				    			" / Exception: " + excecaoLancadaPeloMetodo));
+				    	
 						ReturnMessage rm = new ReturnMessage();
 						rm.setMessage("Should be caught by (Policy rule "+ ruleName.getId() + "): " + formatHandler(handlers));
 						rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(methodThrow.getStartPosition()));

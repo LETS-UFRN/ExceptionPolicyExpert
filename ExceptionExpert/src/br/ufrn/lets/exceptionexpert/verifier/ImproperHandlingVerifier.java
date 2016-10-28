@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.dom.CatchClause;
 
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
@@ -21,8 +23,8 @@ import br.ufrn.lets.exceptionexpert.models.RulesRepository;
  */
 public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 	
-	public ImproperHandlingVerifier(ASTExceptionRepresentation astRep) {
-		super(astRep);
+	public ImproperHandlingVerifier(ASTExceptionRepresentation astRep, ILog log) {
+		super(astRep, log);
 	}
 
 	@Override
@@ -85,8 +87,11 @@ public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 						
 						if (ruleName != null) {
 							
-							LOGGER.warning("Violation detected. Rule " + ruleName + " / Class " + method.getAstRep().getTypeDeclaration().getName().toString());
-							
+					    	getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "Violation detected (ImproperHandlingVerifier). Rule: " + ruleName + 
+					    			" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
+					    			" / Method: " + method.getMethodDeclaration().getName().toString() +
+					    			" / Catched Exception: " + catchClause.getException().getType().toString()));
+					    	
 							ReturnMessage rm = new ReturnMessage();
 							rm.setMessage("VIOLATION: should not be catching the exception " + catchClause.getException().getType().toString() + " (Policy rule " + ruleName + ")");
 							rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(catchClause.getStartPosition()));
