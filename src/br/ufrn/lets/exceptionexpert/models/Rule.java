@@ -1,10 +1,7 @@
 package br.ufrn.lets.exceptionexpert.models;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Represents a ECL rule
@@ -12,48 +9,66 @@ import java.util.Set;
  *
  */
 public class Rule {
+	
+	/**
+	 * Id o the rule
+	 */
+	private String id;
 
 	/**
 	 * Type of the rule (full or partial)
 	 */
-	String type;
+	private RuleTypeEnum type;
 	
 	/**
 	 * Signaler of the rule
 	 */
-	String signaler;
+	private String signaler;
+	
+	/**
+	 * If true, the signaler is the package DAO (all classes)
+	 */
+	private boolean signalerPackageDAO;
+	
+	/**
+	 * If true, the signaler is the package View (all classes)
+	 */
+	private boolean signalerPackageView;
 	
 	/**
 	 * Signaler type (the way the signaler is defined)
 	 */
-	private RuleElementPattern signalerPattern;
+	private RuleElementPatternEnum signalerPattern;
 	
 	/**
 	 * Map with the element exception and its handlers
 	 */
 	private Map<String, List<String>> exceptionAndHandlers;
-	
-	
+
+	/**
+	 * Map with the element exception and elements that cannot handle the exception
+	 */
+	private Map<String, List<String>> exceptionAndCannotHandle;
+
 	public Rule() {
 		super();
 	}
 
-	public Rule(String type, String signaler) {
+	public Rule(RuleTypeEnum type, String signaler) {
 		super();
 		this.type = type;
 		this.signaler = signaler;
 	}
 	
 	public boolean isFull() {
-		//TODO do a Enum to list the kind of rules
-		return getType().equals("full");
+		return getType().isFull();
 	}
 	
-	public String getType() {
+	public RuleTypeEnum getType() {
 		return type;
 	}
 	
-	public void setType(String type) {
+	public void setType(RuleTypeEnum type) {
 		this.type = type;
 	}
 	
@@ -75,28 +90,46 @@ public class Rule {
 	
 	@Override
 	public String toString() {
-		StringBuilder toString = new StringBuilder();
-		toString.append("Tipo " + getType());
-		toString.append("signaler " + getSignaler());
-		
-		Set<Entry<String, List<String>>> entrySet = getExceptionAndHandlers().entrySet();
-		Iterator<Entry<String, List<String>>> iterator = entrySet.iterator();
-		while(iterator.hasNext()) {
-			Entry<String, List<String>> next = iterator.next();
-			toString.append("Exception " + next.getKey());
-			for (String s : next.getValue()) {
-				toString.append("     Handler " + s);
-			}
-		}
-		
-		return toString.toString();
+		return getId();
 	}
 
-	public RuleElementPattern getSignalerPattern() {
+	public RuleElementPatternEnum getSignalerPattern() {
 		return signalerPattern;
 	}
 
-	public void setSignalerPattern(RuleElementPattern signalerPattern) {
+	public void setSignalerPattern(RuleElementPatternEnum signalerPattern) {
 		this.signalerPattern = signalerPattern;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public Map<String, List<String>> getExceptionAndCannotHandle() {
+		return exceptionAndCannotHandle;
+	}
+
+	public void setExceptionAndCannotHandle(Map<String, List<String>> exceptionAndCannotHandle) {
+		this.exceptionAndCannotHandle = exceptionAndCannotHandle;
+	}
+
+	public boolean isSignalerPackageDAO() {
+		return signalerPackageDAO;
+	}
+
+	public void setSignalerPackageDAO(boolean signalerPackageDAO) {
+		this.signalerPackageDAO = signalerPackageDAO;
+	}
+
+	public boolean isSignalerPackageView() {
+		return signalerPackageView;
+	}
+
+	public void setSignalerPackageView(boolean signalerPackageView) {
+		this.signalerPackageView = signalerPackageView;
 	}
 }

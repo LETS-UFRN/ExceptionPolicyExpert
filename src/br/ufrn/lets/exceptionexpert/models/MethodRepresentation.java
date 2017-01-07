@@ -9,6 +9,8 @@ import org.eclipse.jdt.core.dom.ThrowStatement;
 
 public class MethodRepresentation {
 
+	private ASTExceptionRepresentation astRep;
+	
 	private MethodDeclaration methodDeclaration;
 
 	private List<CatchClause> catchClauses;
@@ -42,6 +44,14 @@ public class MethodRepresentation {
 
 	public void setCatchClauses(List<CatchClause> catchClauses) {
 		this.catchClauses = catchClauses;
+	}
+
+	public ASTExceptionRepresentation getAstRep() {
+		return astRep;
+	}
+
+	public void setAstRep(ASTExceptionRepresentation astRep) {
+		this.astRep = astRep;
 	}
 
 	

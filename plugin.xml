@@ -2,7 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    
-   <!--
    <extension point="org.eclipse.ui.views">
       	<category
             id="br.ufrn.lets.viewCategory"
@@ -15,7 +14,7 @@
             name="Exception Expert">
       	</view>
 	</extension>
-	-->
+	
 
 	<extension point="org.eclipse.ui.startup">
    		<startup class="br.ufrn.lets.StartupClass"/>

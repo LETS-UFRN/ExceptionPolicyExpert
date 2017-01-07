@@ -1,9 +1,15 @@
 package br.ufrn.lets;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -12,24 +18,38 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import br.ufrn.lets.exceptionexpert.ast.ParseAST;
 import br.ufrn.lets.exceptionexpert.models.ASTExceptionRepresentation;
 import br.ufrn.lets.exceptionexpert.models.ReturnMessage;
 import br.ufrn.lets.exceptionexpert.models.RulesRepository;
+import br.ufrn.lets.exceptionexpert.verifier.ImproperHandlingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperThrowingVerifier;
-import br.ufrn.lets.exceptionexpert.verifier.VerifyHandler;
+import br.ufrn.lets.exceptionexpert.verifier.PossibleHandlersInformation;
 import br.ufrn.lets.xml.ParseXMLECLRules;
+import exceptionexpert.Activator;
 
 public class StartupClass implements IStartup {
+    
+	protected final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 	List<ReturnMessage> messages = new ArrayList<ReturnMessage>();
+	
+	//http://stackoverflow.com/questions/28481943/proper-logging-for-eclipse-plug-in-development
+	private ILog log = Activator.getDefault().getLog();
 	
 	@Override
 	public void earlyStartup() {
@@ -37,11 +57,16 @@ public class StartupClass implements IStartup {
 		    @Override
 		    public void run() {
 		    	
-		    	//Parse XML documentation rules
-				String path = "/Users/taiza/git/ExceptionExpert/ExceptionExpert/resources/contract.xml";
-		    	Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(path);
-				RulesRepository.setRules(ParseXMLECLRules.parse(doc));
 		    	
+		    	log.log(new Status(Status.INFO, "br.ufrn.lets.exceptionExpert", "INFO - Initializing ExceptionPolicyExpert Plug-in..."));
+		    	
+		    	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			    IEditorPart part = page.getActiveEditor();
+			    if (!(part instanceof AbstractTextEditor))
+			      return;
+
+//			    ExceptionExpertView view = (ExceptionExpertView) page.findView(ExceptionExpertView.ID);
+				
 				//Configures the change listener
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
 				IResourceChangeListener listener = new IResourceChangeListener() {
@@ -55,7 +80,7 @@ public class StartupClass implements IStartup {
 						
 						//List with all .java changed files
 						final ArrayList<IResource> changedClasses = new ArrayList<IResource>();
-						
+
 						//Visit the children to get all .java changed files
 						IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
 							public boolean visit(IResourceDelta delta) {
@@ -79,16 +104,69 @@ public class StartupClass implements IStartup {
 						try {
 							rootDelta.accept(visitor);
 						} catch (CoreException e) {
-							// TODO Auto-generated catch block
+					    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Something wrong happened when processing modified files. " + e.getLocalizedMessage()));
 							e.printStackTrace();
 						}
 				         
 						if (!changedClasses.isEmpty()) {
-							//If there are changed files
+							
+							List<IProject> projects = new ArrayList<IProject>();
+
 							for (IResource changedClass : changedClasses) {
-								//Call the verifier for each changed class
-								verifyHandlersAndSignalers(changedClass);
+								IProject project = changedClass.getProject();
+								
+								if(!projects.contains(project))
+									projects.add(project);
 							}
+							
+							try{
+								for (IProject project : projects) {
+
+									if (project.getName().toString().compareTo("SIGRH") == 0) {
+
+										String filePath = "";
+
+										//First, try to find in the src-gen folder
+										IFile file = project.getFile("/src-gen/contract.xml");
+
+										//Second, try to find in the bin folder
+										if (!file.exists())
+											file = project.getFile("/bin/contract.xml");
+											
+										//Third, try to find in the C: folder
+										if (!file.exists())
+											filePath = "C:/contract.xml";
+										else
+											filePath = file.getLocation().toString();
+
+										Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(filePath, log);
+										RulesRepository.setRules(ParseXMLECLRules.parse(doc));
+									}
+								}
+								
+								//If there are changed files
+								for (IResource changedClass : changedClasses) {
+									//Call the verifier for each changed class
+									verifyHandlersAndSignalers(changedClass);
+								}
+								
+							} catch (CoreException e) {
+						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted. " + e.getLocalizedMessage()));
+								e.printStackTrace();
+								
+							} catch (IOException e) {
+						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted. " + e.getLocalizedMessage()));
+								e.printStackTrace();
+								
+							} catch (SAXException e) {
+						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Invalid format of contract.xml file. Plug-in aborted. " + e.getLocalizedMessage()));
+								e.printStackTrace();
+								
+							} catch (ParserConfigurationException e) {
+						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Invalid format of contract.xml file. Plug-in aborted. " + e.getLocalizedMessage()));
+								e.printStackTrace();
+							}
+							
 						}
 						
 					}
@@ -97,6 +175,7 @@ public class StartupClass implements IStartup {
 				
 				//Plug the listener in the workspace
 				workspace.addResourceChangeListener(listener, IResourceChangeEvent.POST_BUILD);
+				
 		    }
 		});	
 	}
@@ -105,8 +184,10 @@ public class StartupClass implements IStartup {
 	 * Method that calls the verifications
 	 * @param changedClass
 	 */
-	private void verifyHandlersAndSignalers(IResource changedClass) {
+	private void verifyHandlersAndSignalers(IResource changedClass) throws CoreException {
 
+		deleteMarkers(changedClass);
+		
 		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(changedClass);
 		
 		//AST Tree from changed class
@@ -116,21 +197,26 @@ public class StartupClass implements IStartup {
 
 		messages = new ArrayList<ReturnMessage>();
 		
-		System.out.println("Rule 1");
-
-		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep);
+		//Rule 1
+		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep, log);
 		messages.addAll(improperThrowingVerifier.verify());
 
-		System.out.println("Rule 2");
-		messages.addAll(VerifyHandler.verify(astRep, RulesRepository.getRules()));
-		
+		//Rule 3
+		ImproperHandlingVerifier improperHandlingVerifier = new ImproperHandlingVerifier(astRep, log);
+		messages.addAll(improperHandlingVerifier.verify());
+
+		//Rule 4
+		PossibleHandlersInformation possibleHandlersInformation = new PossibleHandlersInformation(astRep, log);
+		messages.addAll(possibleHandlersInformation.verify());
+
 		try {
 			for(ReturnMessage rm : messages) {
 				createMarker(changedClass, rm);
 			}
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
+	    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
 			e.printStackTrace();
+			throw e;
 		}
 			
 	}
@@ -138,19 +224,15 @@ public class StartupClass implements IStartup {
 	/**
 	 * Delete all the markers of ExceptionPolicyExpert type
 	 * @param res Resource (class) to delete the marker
+	 * @throws CoreException 
 	 */
-	private static void deleteMarkers(IResource res){
+	private static void deleteMarkers(IResource res) throws CoreException {
 		IMarker[] problems = null;
 		int depth = IResource.DEPTH_INFINITE;
-		try {
-			problems = res.findMarkers("br.ufrn.lets.view.ExceptionPolicyExpertId", true, depth);
-			
-			for (int i = 0; i < problems.length; i++) {
-				problems[i].delete();
-			}
+		problems = res.getProject().findMarkers("br.ufrn.lets.view.ExceptionPolicyExpertId", true, depth);
 
-		} catch (CoreException e) {
-			e.printStackTrace();
+		for (int i = 0; i < problems.length; i++) {
+			problems[i].delete();
 		}
 	}
 	
@@ -163,15 +245,20 @@ public class StartupClass implements IStartup {
 	public static void createMarker(IResource res, ReturnMessage rm)
 			throws CoreException {
 		
-		//TODO verify if it can be called in a more appropriate place
-		deleteMarkers(res);
-		
 		IMarker marker = null;
 		marker = res.createMarker("br.ufrn.lets.view.ExceptionPolicyExpertId");
 		marker.setAttribute(IMarker.TEXT, rm.getMessage());
 		marker.setAttribute(IMarker.MESSAGE, rm.getMessage());
 		marker.setAttribute(IMarker.LINE_NUMBER, rm.getLineNumber());
 		marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
+	}
+
+	public ILog getLog() {
+		return log;
+	}
+
+	public void setLog(ILog log) {
+		this.log = log;
 	}
 	
 	

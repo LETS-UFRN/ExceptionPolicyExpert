@@ -5,10 +5,11 @@ package br.ufrn.lets.exceptionexpert.models;
  * @author taiza
  *
  */
-public enum RuleElementPattern {
+public enum RuleElementPatternEnum {
 
 	ASTERISC_WILDCARD, //*
 	CLASS_DEFINITION, //for example: p1.p2.Class.*
-	METHOD_DEFINITION; //for example: p1.p2.Class.method1(..)
+	METHOD_DEFINITION, //for example: p1.p2.Class.method1(..)
+	PACKAGE_DEFINITION; //for example: *.dao.*
 	
 }
