@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.dom.ThrowStatement;
@@ -95,6 +96,7 @@ public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 						ReturnMessage rm = new ReturnMessage();
 						rm.setMessage("VIOLATION: should not be throwing the exception " + excecaoLancadaPeloMetodo + " (Policy rule " + ruleName + ")");
 						rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(methodThrow.getStartPosition()));
+						rm.setMarkerSeverity(IMarker.SEVERITY_WARNING);
 						returnM.add(rm);
 					}
 						

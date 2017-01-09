@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.dom.CatchClause;
@@ -95,6 +96,7 @@ public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 							ReturnMessage rm = new ReturnMessage();
 							rm.setMessage("VIOLATION: should not be catching the exception " + catchClause.getException().getType().toString() + " (Policy rule " + ruleName + ")");
 							rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(catchClause.getStartPosition()));
+							rm.setMarkerSeverity(IMarker.SEVERITY_WARNING);
 							returnM.add(rm);
 						}
 							

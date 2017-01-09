@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.dom.ThrowStatement;
@@ -107,6 +108,7 @@ public class PossibleHandlersInformation extends ExceptionPolicyVerifier {
 						ReturnMessage rm = new ReturnMessage();
 						rm.setMessage("Should be caught by (Policy rule "+ ruleName.getId() + "): " + formatHandler(handlers));
 						rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(methodThrow.getStartPosition()));
+						rm.setMarkerSeverity(IMarker.SEVERITY_WARNING);
 						returnM.add(rm);
 					}
 						

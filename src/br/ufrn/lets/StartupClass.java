@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IStartup;
@@ -211,12 +212,15 @@ public class StartupClass implements IStartup {
 
 		try {
 			for(ReturnMessage rm : messages) {
-				createMarker(changedClass, rm);
+				createMarker(changedClass, rm, compilationUnit);
 			}
 		} catch (CoreException e) {
 	    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
 			e.printStackTrace();
 			throw e;
+		} catch (BadLocationException e) {
+	    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
+			e.printStackTrace();
 		}
 			
 	}
@@ -240,17 +244,29 @@ public class StartupClass implements IStartup {
 	 * Create a marker for each returned message (information or violation)
 	 * @param res Resource (class) to attach the marker
 	 * @param rm Object with the marker message and marke line
+	 * @param compilationUnit 
 	 * @throws CoreException
+	 * @throws BadLocationException 
 	 */
-	public static void createMarker(IResource res, ReturnMessage rm)
-			throws CoreException {
+	public static void createMarker(IResource res, ReturnMessage rm, ICompilationUnit compilationUnit)
+			throws CoreException, BadLocationException {
 		
 		IMarker marker = null;
 		marker = res.createMarker("br.ufrn.lets.view.ExceptionPolicyExpertId");
+		marker.setAttribute(IMarker.SEVERITY, rm.getMarkerSeverity());
 		marker.setAttribute(IMarker.TEXT, rm.getMessage());
 		marker.setAttribute(IMarker.MESSAGE, rm.getMessage());
-		marker.setAttribute(IMarker.LINE_NUMBER, rm.getLineNumber());
+		
 		marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
+		
+		org.eclipse.jface.text.Document document = new org.eclipse.jface.text.Document(compilationUnit.getSource());
+
+		int offset = document.getLineOffset(rm.getLineNumber()-1);
+		int length = document.getLineLength(rm.getLineNumber()-1);
+		
+		marker.setAttribute(IMarker.CHAR_START, offset);
+		marker.setAttribute(IMarker.CHAR_END, offset + length);
+
 	}
 
 	public ILog getLog() {

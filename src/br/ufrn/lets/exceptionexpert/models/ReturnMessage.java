@@ -6,6 +6,8 @@ public class ReturnMessage {
 	
 	private Integer lineNumber;
 	
+	private Integer markerSeverity;
+	
 	public String getMessage() {
 		return message;
 	}
@@ -21,6 +23,15 @@ public class ReturnMessage {
 	public void setLineNumber(Integer lineNumber) {
 		this.lineNumber = lineNumber;
 	}
+
+	public Integer getMarkerSeverity() {
+		return markerSeverity;
+	}
+
+	public void setMarkerSeverity(Integer markerSeverity) {
+		this.markerSeverity = markerSeverity;
+	}
+
 	
 	
 }
