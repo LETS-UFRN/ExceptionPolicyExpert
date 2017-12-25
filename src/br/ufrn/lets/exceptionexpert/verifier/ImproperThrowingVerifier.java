@@ -87,11 +87,13 @@ public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 					
 					String ruleName = getRuleNameNotMatchWithMethodException(excecaoLancadaPeloMetodo, entry.getValue());
 					if (ruleName != null) {
-						
-				    	getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Violation detected (ImproperThrowingVerifier). Rule: " + ruleName + 
-				    			" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
-				    			" / Method: " + method.getMethodDeclaration().getName().toString() +
-				    			" / Exception: " + excecaoLancadaPeloMetodo));
+
+						if (getLog() != null) {
+							getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Violation detected (ImproperThrowingVerifier). Rule: " + ruleName + 
+									" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
+									" / Method: " + method.getMethodDeclaration().getName().toString() +
+									" / Exception: " + excecaoLancadaPeloMetodo));
+						}
 
 						ReturnMessage rm = new ReturnMessage();
 						rm.setMessage("VIOLATION: should not be throwing the exception " + excecaoLancadaPeloMetodo + " (Policy rule " + ruleName + ")");

@@ -99,12 +99,14 @@ public class PossibleHandlersInformation extends ExceptionPolicyVerifier {
 					
 					if (ruleName != null) {
 						List<String> handlers = ruleName.getExceptionAndHandlers().get(excecaoLancadaPeloMetodo);
-						
-				    	getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Handling information detected (PossibleHandlersInformation). Rule: " + ruleName + 
-				    			" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
-				    			" / Method: " + method.getMethodDeclaration().getName().toString() +
-				    			" / Exception: " + excecaoLancadaPeloMetodo));
-				    	
+
+						if (getLog() != null) {
+							getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Handling information detected (PossibleHandlersInformation). Rule: " + ruleName + 
+									" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
+									" / Method: " + method.getMethodDeclaration().getName().toString() +
+									" / Exception: " + excecaoLancadaPeloMetodo));
+						}
+
 						ReturnMessage rm = new ReturnMessage();
 						rm.setMessage("Should be caught by (Policy rule "+ ruleName.getId() + "): " + formatHandler(handlers));
 						rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(methodThrow.getStartPosition()));

@@ -87,12 +87,14 @@ public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 						Rule ruleName = getRuleNameMatchWithMethodException(method, catchClause, rulesWithCannot);
 						
 						if (ruleName != null) {
+
+							if (getLog() != null) {
+								getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Violation detected (ImproperHandlingVerifier). Rule: " + ruleName + 
+										" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
+										" / Method: " + method.getMethodDeclaration().getName().toString() +
+										" / Catched Exception: " + catchClause.getException().getType().toString()));
+							}
 							
-					    	getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Violation detected (ImproperHandlingVerifier). Rule: " + ruleName + 
-					    			" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
-					    			" / Method: " + method.getMethodDeclaration().getName().toString() +
-					    			" / Catched Exception: " + catchClause.getException().getType().toString()));
-					    	
 							ReturnMessage rm = new ReturnMessage();
 							rm.setMessage("VIOLATION: should not be catching the exception " + catchClause.getException().getType().toString() + " (Policy rule " + ruleName + ")");
 							rm.setLineNumber(getAstRep().getAstRoot().getLineNumber(catchClause.getStartPosition()));

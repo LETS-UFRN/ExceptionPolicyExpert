@@ -1,2 +1,0 @@
-substituirJavadocPorExcecoes=false
-////Se voce quiser ver as exceções de um metodo ao invés do javadoc padrão do eclipse, basta mudar o booleano acima para true. Senão, mude para false
