@@ -30,22 +30,21 @@ public class ASTExceptionRepresentation {
 	private List<MethodRepresentation> methods;
 	
 	/**
+	 * How many throws statements the class has
+	 */
+	private int numberOfThrowStatements;
+	
+	/**
+	 * How many catches statements the class has
+	 */
+	private int numberOfCatchStatements;
+	
+	/**
 	 * Verifies if some method of this class has a throws statement
 	 * @return True if exists, false otherwise
 	 */
 	public boolean hasThrowsStatements() {
-		boolean hasThrows = false;
-		
-		if (methods != null && methods.size() > 0) {
-			for (MethodRepresentation mr : methods) {
-				if (mr.getThrowStatements() != null && mr.getThrowStatements().size() > 0) {
-					hasThrows = true;
-					break;
-				}
-			}
- 		}
-		
-		return hasThrows;
+		return getNumberOfThrowStatements() > 0;
 	}
 
 	/**
@@ -53,18 +52,7 @@ public class ASTExceptionRepresentation {
 	 * @return True if exists, false otherwise
 	 */
 	public boolean hasCatchStatements() {
-		boolean hasCatch = false;
-		
-		if (methods != null && methods.size() > 0) {
-			for (MethodRepresentation mr : methods) {
-				if (mr.getCatchClauses() != null && mr.getCatchClauses().size() > 0) {
-					hasCatch = true;
-					break;
-				}
-			}
- 		}
-		
-		return hasCatch;
+		return getNumberOfCatchStatements() > 0;
 	}
 
 	public ASTExceptionRepresentation() {
@@ -101,5 +89,21 @@ public class ASTExceptionRepresentation {
 
 	public void setMethods(List<MethodRepresentation> methods) {
 		this.methods = methods;
+	}
+
+	public int getNumberOfThrowStatements() {
+		return numberOfThrowStatements;
+	}
+
+	public void setNumberOfThrowStatements(int numberOfThrowStatements) {
+		this.numberOfThrowStatements = numberOfThrowStatements;
+	}
+
+	public int getNumberOfCatchStatements() {
+		return numberOfCatchStatements;
+	}
+
+	public void setNumberOfCatchStatements(int numberOfCatchStatements) {
+		this.numberOfCatchStatements = numberOfCatchStatements;
 	}
 }

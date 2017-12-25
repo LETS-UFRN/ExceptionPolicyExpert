@@ -45,6 +45,8 @@ import exceptionexpert.Activator;
 
 public class StartupClass implements IStartup {
     
+	private static final String PLUGIN_LOG_IDENTIFIER = "br.ufrn.lets.exceptionExpert";
+
 	protected final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 	List<ReturnMessage> messages = new ArrayList<ReturnMessage>();
@@ -58,8 +60,7 @@ public class StartupClass implements IStartup {
 		    @Override
 		    public void run() {
 		    	
-		    	
-		    	log.log(new Status(Status.INFO, "br.ufrn.lets.exceptionExpert", "INFO - Initializing ExceptionPolicyExpert Plug-in..."));
+		    	log.log(new Status(Status.INFO, PLUGIN_LOG_IDENTIFIER, "INFO - Initializing ExceptionPolicyExpert Plug-in..."));
 		    	
 		    	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			    IEditorPart part = page.getActiveEditor();
@@ -101,11 +102,10 @@ public class StartupClass implements IStartup {
 							}
 						};
 						
-						
 						try {
 							rootDelta.accept(visitor);
 						} catch (CoreException e) {
-					    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Something wrong happened when processing modified files. " + e.getLocalizedMessage()));
+					    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Something wrong happened when processing modified files. " + e.getLocalizedMessage()));
 							e.printStackTrace();
 						}
 				         
@@ -123,26 +123,23 @@ public class StartupClass implements IStartup {
 							try{
 								for (IProject project : projects) {
 
-									if (project.getName().toString().compareTo("SIGRH") == 0) {
+									String filePath = "";
 
-										String filePath = "";
+									//First, try to find in the src-gen folder
+									IFile file = project.getFile("/src-gen/contract.xml");
 
-										//First, try to find in the src-gen folder
-										IFile file = project.getFile("/src-gen/contract.xml");
+									//Second, try to find in the bin folder
+									if (!file.exists())
+										file = project.getFile("/bin/contract.xml");
 
-										//Second, try to find in the bin folder
-										if (!file.exists())
-											file = project.getFile("/bin/contract.xml");
-											
-										//Third, try to find in the C: folder
-										if (!file.exists())
-											filePath = "C:/contract.xml";
-										else
-											filePath = file.getLocation().toString();
+									//Third, try to find in the C: folder
+									if (!file.exists())
+										filePath = "C:/contract.xml";
+									else
+										filePath = file.getLocation().toString();
 
-										Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(filePath, log);
-										RulesRepository.setRules(ParseXMLECLRules.parse(doc));
-									}
+									Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(filePath, log);
+									RulesRepository.setRules(ParseXMLECLRules.parse(doc));
 								}
 								
 								//If there are changed files
@@ -152,19 +149,19 @@ public class StartupClass implements IStartup {
 								}
 								
 							} catch (CoreException e) {
-						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted. " + e.getLocalizedMessage()));
+						    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted. " + e.getLocalizedMessage()));
 								e.printStackTrace();
 								
 							} catch (IOException e) {
-						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted. " + e.getLocalizedMessage()));
+						    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - The workspace does not have the file /src-gen/contract.xml, with ECL rules. Plug-in aborted. " + e.getLocalizedMessage()));
 								e.printStackTrace();
 								
 							} catch (SAXException e) {
-						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Invalid format of contract.xml file. Plug-in aborted. " + e.getLocalizedMessage()));
+						    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Invalid format of contract.xml file. Plug-in aborted. " + e.getLocalizedMessage()));
 								e.printStackTrace();
 								
 							} catch (ParserConfigurationException e) {
-						    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Invalid format of contract.xml file. Plug-in aborted. " + e.getLocalizedMessage()));
+						    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Invalid format of contract.xml file. Plug-in aborted. " + e.getLocalizedMessage()));
 								e.printStackTrace();
 							}
 							
@@ -190,11 +187,19 @@ public class StartupClass implements IStartup {
 		deleteMarkers(changedClass);
 		
 		ICompilationUnit compilationUnit = (ICompilationUnit) JavaCore.create(changedClass);
-		
+
 		//AST Tree from changed class
 		CompilationUnit astRoot = ParseAST.parse(compilationUnit);
 		
-		ASTExceptionRepresentation astRep = ParseAST.parseClassASTToExcpetionRep(astRoot);
+		ASTExceptionRepresentation astRep = ParseAST.parseClassASTToExceptionRep(astRoot);
+
+		//Debug log for statistics metrics
+	   	log.log(new Status(Status.INFO, PLUGIN_LOG_IDENTIFIER, "INFO - Changed class: " + compilationUnit.getElementName() +
+    			" / Project: " + changedClass.getProject().getName() + 
+    			" / Methods: " + astRep.getMethods().size() +
+    			" / Throws: " + astRep.getNumberOfThrowStatements() + 
+    			" / Catches: " + astRep.getNumberOfCatchStatements()
+	   			));
 
 		messages = new ArrayList<ReturnMessage>();
 		
@@ -215,11 +220,11 @@ public class StartupClass implements IStartup {
 				createMarker(changedClass, rm, compilationUnit);
 			}
 		} catch (CoreException e) {
-	    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
+	    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
 			e.printStackTrace();
 			throw e;
 		} catch (BadLocationException e) {
-	    	log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
+	    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
 			e.printStackTrace();
 		}
 			
@@ -243,7 +248,7 @@ public class StartupClass implements IStartup {
 	/**
 	 * Create a marker for each returned message (information or violation)
 	 * @param res Resource (class) to attach the marker
-	 * @param rm Object with the marker message and marke line
+	 * @param rm Object with the marker message and mark line
 	 * @param compilationUnit 
 	 * @throws CoreException
 	 * @throws BadLocationException 

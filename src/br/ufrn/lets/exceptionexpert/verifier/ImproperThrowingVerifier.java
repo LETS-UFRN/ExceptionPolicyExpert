@@ -25,6 +25,8 @@ import br.ufrn.lets.exceptionexpert.models.Rule;
  */
 public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 	
+	private static final String PLUGIN_LOG_IDENTIFIER = "br.ufrn.lets.exceptionExpert";
+
 	public ImproperThrowingVerifier(ASTExceptionRepresentation astRep, ILog log) {
 		super(astRep, log);
 	}
@@ -89,7 +91,7 @@ public class ImproperThrowingVerifier extends ExceptionPolicyVerifier {
 					if (ruleName != null) {
 
 						if (getLog() != null) {
-							getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Violation detected (ImproperThrowingVerifier). Rule: " + ruleName + 
+							getLog().log(new Status(Status.WARNING, PLUGIN_LOG_IDENTIFIER, "WARNING - Violation detected (ImproperThrowingVerifier). Rule: " + ruleName + 
 									" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
 									" / Method: " + method.getMethodDeclaration().getName().toString() +
 									" / Exception: " + excecaoLancadaPeloMetodo));

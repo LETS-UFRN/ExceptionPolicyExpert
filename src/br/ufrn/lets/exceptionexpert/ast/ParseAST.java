@@ -7,7 +7,6 @@ import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
@@ -41,7 +40,7 @@ public class ParseAST {
 	 * @param astRoot
 	 * @return
 	 */
-	public static ASTExceptionRepresentation parseClassASTToExcpetionRep(CompilationUnit astRoot) {
+	public static ASTExceptionRepresentation parseClassASTToExceptionRep(CompilationUnit astRoot) {
 		//Ref: http://www.programcreek.com/2012/06/insertadd-statements-to-java-source-code-by-using-eclipse-jdt-astrewrite/
 		//Ref: http://www.programcreek.com/java-api-examples/index.php?api=org.eclipse.jdt.core.dom.MethodDeclaration
 
@@ -88,8 +87,32 @@ public class ParseAST {
 			}
 			
 		});
+		
+		processNumberOfStatements(astRep);
 
 		return astRep;
+	}
+
+	/**
+	 * 
+	 * @param astRep
+	 */
+	private static void processNumberOfStatements(ASTExceptionRepresentation astRep) {
+		
+		if (astRep.getMethods() != null && astRep.getMethods().size() > 0) {
+			for (MethodRepresentation mr : astRep.getMethods()) {
+				if (mr.getThrowStatements() != null && mr.getThrowStatements().size() > 0) {
+					astRep.setNumberOfThrowStatements(
+							astRep.getNumberOfThrowStatements() + mr.getThrowStatements().size());
+				}
+				if (mr.getCatchClauses() != null && mr.getCatchClauses().size() > 0) {
+					astRep.setNumberOfCatchStatements(
+							astRep.getNumberOfCatchStatements() + mr.getCatchClauses().size());
+				}
+			}
+			
+ 		}
+		
 	}
 	
 }

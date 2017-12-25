@@ -24,6 +24,8 @@ import br.ufrn.lets.exceptionexpert.models.RulesRepository;
  */
 public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 	
+	private static final String PLUGIN_LOG_IDENTIFIER = "br.ufrn.lets.exceptionExpert";
+
 	public ImproperHandlingVerifier(ASTExceptionRepresentation astRep, ILog log) {
 		super(astRep, log);
 	}
@@ -69,7 +71,7 @@ public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 			List<Rule> rulesWithCannot = new ArrayList<>();
 			List<Rule> signalersWildcardAll = RulesRepository.getSignalersWildcardAll();
 			
-			//GEt all rules that have cannothandler
+			//GEt all rules that have cannot-handler
 			for (Rule r : signalersWildcardAll) {
 				if (r.getExceptionAndCannotHandle() != null && r.getExceptionAndCannotHandle().size() > 0)
 					rulesWithCannot.add(r);
@@ -89,7 +91,7 @@ public class ImproperHandlingVerifier extends ExceptionPolicyVerifier {
 						if (ruleName != null) {
 
 							if (getLog() != null) {
-								getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Violation detected (ImproperHandlingVerifier). Rule: " + ruleName + 
+								getLog().log(new Status(Status.WARNING, PLUGIN_LOG_IDENTIFIER, "WARNING - Violation detected (ImproperHandlingVerifier). Rule: " + ruleName + 
 										" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
 										" / Method: " + method.getMethodDeclaration().getName().toString() +
 										" / Catched Exception: " + catchClause.getException().getType().toString()));

@@ -30,6 +30,7 @@ import br.ufrn.lets.exceptionexpert.models.RuleTypeEnum;
 
 public class ParseXMLECLRules {
 
+	private static final String PLUGIN_LOG_IDENTIFIER = "br.ufrn.lets.exceptionExpert";
 	protected final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 	public static Document parseDocumentFromString(String stringRules) {
@@ -76,7 +77,7 @@ public class ParseXMLECLRules {
 			doc = dBuilder.parse(fXmlFile);
 
 		} catch (FileNotFoundException e) {
-			log.log(new Status(Status.ERROR, "br.ufrn.lets.exceptionExpert", "ERROR - File contract.xml not found."));
+			log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - File contract.xml not found."));
 		} 
 
 		return doc;
@@ -202,7 +203,7 @@ public class ParseXMLECLRules {
 		else if (attribute.equals("partial"))
 			return RuleTypeEnum.PARTIAL;
 
-		throw new InvalidRuleSyntaxException("Invalid value for 'type' propertie");
+		throw new InvalidRuleSyntaxException("Invalid value for 'type' property");
 	}
 
 	private static String getSignaler(Element rule) {

@@ -25,6 +25,8 @@ import br.ufrn.lets.exceptionexpert.models.Rule;
  */
 public class PossibleHandlersInformation extends ExceptionPolicyVerifier {
 	
+	private static final String PLUGIN_LOG_IDENTIFIER = "br.ufrn.lets.exceptionExpert";
+
 	public PossibleHandlersInformation(ASTExceptionRepresentation astRep, ILog log) {
 		super(astRep, log);
 	}
@@ -101,7 +103,7 @@ public class PossibleHandlersInformation extends ExceptionPolicyVerifier {
 						List<String> handlers = ruleName.getExceptionAndHandlers().get(excecaoLancadaPeloMetodo);
 
 						if (getLog() != null) {
-							getLog().log(new Status(Status.WARNING, "br.ufrn.lets.exceptionExpert", "WARNING - Handling information detected (PossibleHandlersInformation). Rule: " + ruleName + 
+							getLog().log(new Status(Status.WARNING, PLUGIN_LOG_IDENTIFIER, "WARNING - Handling information detected (PossibleHandlersInformation). Rule: " + ruleName + 
 									" / Class: " + method.getAstRep().getTypeDeclaration().getName().toString() + 
 									" / Method: " + method.getMethodDeclaration().getName().toString() +
 									" / Exception: " + excecaoLancadaPeloMetodo));
