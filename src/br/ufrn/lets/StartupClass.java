@@ -193,38 +193,52 @@ public class StartupClass implements IStartup {
 		
 		ASTExceptionRepresentation astRep = ParseAST.parseClassASTToExceptionRep(astRoot);
 
+		messages = new ArrayList<ReturnMessage>();
+		
+		int totalMessages = 0;
+		
+		//Rule 1
+		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep, log);
+		List<ReturnMessage> verify1 = improperThrowingVerifier.verify();
+		messages.addAll(verify1);
+		int totalImproperThrowingVerifier = verify1.size();
+		totalMessages += totalImproperThrowingVerifier;
+
+		//Rule 3
+		ImproperHandlingVerifier improperHandlingVerifier = new ImproperHandlingVerifier(astRep, log);
+		List<ReturnMessage> verify2 = improperHandlingVerifier.verify();
+		messages.addAll(verify2);
+		int totalImproperHandlingVerifier = verify2.size();
+		totalMessages += totalImproperHandlingVerifier;
+
+		//Rule 4
+		PossibleHandlersInformation possibleHandlersInformation = new PossibleHandlersInformation(astRep, log);
+		List<ReturnMessage> verify3 = possibleHandlersInformation.verify();
+		messages.addAll(verify3);
+		int totalPossibleHandlersInformation = verify3.size();
+		totalMessages += totalPossibleHandlersInformation;
+
 		//Debug log for statistics metrics
-	   	log.log(new Status(Status.INFO, PLUGIN_LOG_IDENTIFIER, "INFO - Changed class: " + compilationUnit.getElementName() +
-    			" / Project: " + changedClass.getProject().getName() + 
+	   	log.log(new Status(Status.INFO, PLUGIN_LOG_IDENTIFIER, 
+	   			"INFO - Changed class: " + compilationUnit.getElementName() +
+    			" / Total of messages: " + totalMessages +
+    			"("+ totalImproperThrowingVerifier + ", " + totalImproperHandlingVerifier + ", " + totalPossibleHandlersInformation + ")" + 
+	   			" / Project: " + changedClass.getProject().getName() + 
     			" / Methods: " + astRep.getMethods().size() +
     			" / Throws: " + astRep.getNumberOfThrowStatements() + 
     			" / Catches: " + astRep.getNumberOfCatchStatements()
 	   			));
-
-		messages = new ArrayList<ReturnMessage>();
-		
-		//Rule 1
-		ImproperThrowingVerifier improperThrowingVerifier = new ImproperThrowingVerifier(astRep, log);
-		messages.addAll(improperThrowingVerifier.verify());
-
-		//Rule 3
-		ImproperHandlingVerifier improperHandlingVerifier = new ImproperHandlingVerifier(astRep, log);
-		messages.addAll(improperHandlingVerifier.verify());
-
-		//Rule 4
-		PossibleHandlersInformation possibleHandlersInformation = new PossibleHandlersInformation(astRep, log);
-		messages.addAll(possibleHandlersInformation.verify());
-
+	   	
 		try {
 			for(ReturnMessage rm : messages) {
 				createMarker(changedClass, rm, compilationUnit);
 			}
 		} catch (CoreException e) {
-	    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
+	    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Something wrong happened when creating/removing markers. " + e.getLocalizedMessage()));
 			e.printStackTrace();
 			throw e;
 		} catch (BadLocationException e) {
-	    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Something wrong happend when creating/removing markers. " + e.getLocalizedMessage()));
+	    	log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - Something wrong happened when creating/removing markers. " + e.getLocalizedMessage()));
 			e.printStackTrace();
 		}
 			
