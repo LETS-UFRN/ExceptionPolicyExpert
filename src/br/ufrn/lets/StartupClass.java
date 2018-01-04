@@ -67,8 +67,6 @@ public class StartupClass implements IStartup {
 			    if (!(part instanceof AbstractTextEditor))
 			      return;
 
-//			    ExceptionExpertView view = (ExceptionExpertView) page.findView(ExceptionExpertView.ID);
-				
 				//Configures the change listener
 				IWorkspace workspace = ResourcesPlugin.getWorkspace();
 				IResourceChangeListener listener = new IResourceChangeListener() {
@@ -220,9 +218,9 @@ public class StartupClass implements IStartup {
 
 		//Debug log for statistics metrics
 	   	log.log(new Status(Status.INFO, PLUGIN_LOG_IDENTIFIER, 
-	   			"INFO - Changed class: " + compilationUnit.getElementName() +
+	   			"INFO - Changed class: " + compilationUnit.getParent().getElementName() + "." +  compilationUnit.getElementName() +
     			" / Total of messages: " + totalMessages +
-    			"("+ totalImproperThrowingVerifier + ", " + totalImproperHandlingVerifier + ", " + totalPossibleHandlersInformation + ")" + 
+    			" ("+ totalImproperThrowingVerifier + ", " + totalImproperHandlingVerifier + ", " + totalPossibleHandlersInformation + ")" + 
 	   			" / Project: " + changedClass.getProject().getName() + 
     			" / Methods: " + astRep.getMethods().size() +
     			" / Throws: " + astRep.getNumberOfThrowStatements() + 
