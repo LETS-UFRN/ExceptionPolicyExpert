@@ -1,5 +1,6 @@
 package br.ufrn.lets;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,9 @@ public class StartupClass implements IStartup {
 	protected final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
 	List<ReturnMessage> messages = new ArrayList<ReturnMessage>();
+	
+	// List with projects that do not have a properly configuration, i.e., the contract.xml file configured. 
+	List<IProject> projectsWithoutConfig = new ArrayList<>();
 	
 	//http://stackoverflow.com/questions/28481943/proper-logging-for-eclipse-plug-in-development
 	private ILog log = Activator.getDefault().getLog();
@@ -114,7 +118,7 @@ public class StartupClass implements IStartup {
 							for (IResource changedClass : changedClasses) {
 								IProject project = changedClass.getProject();
 								
-								if(!projects.contains(project))
+								if(!projects.contains(project) && !projectsWithoutConfig.contains(project))
 									projects.add(project);
 							}
 							
@@ -136,14 +140,24 @@ public class StartupClass implements IStartup {
 									else
 										filePath = file.getLocation().toString();
 
-									Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(filePath, log);
-									RulesRepository.setRules(ParseXMLECLRules.parse(doc));
+									try {
+										Document doc = ParseXMLECLRules.parseDocumentFromXMLFile(filePath, log, project);
+										
+										//FIXME It is supporting only one project, 
+										// because the RulesRepository is not related to the projects.
+										RulesRepository.setRules(ParseXMLECLRules.parse(doc));
+										
+									} catch (FileNotFoundException e) {
+										projectsWithoutConfig.add(project);
+									}
 								}
 								
 								//If there are changed files
 								for (IResource changedClass : changedClasses) {
-									//Call the verifier for each changed class
-									verifyHandlersAndSignalers(changedClass);
+									if (!projectsWithoutConfig.contains(changedClass.getProject())) {
+										//Call the verifier for each changed class
+										verifyHandlersAndSignalers(changedClass);
+									}
 								}
 								
 							} catch (CoreException e) {

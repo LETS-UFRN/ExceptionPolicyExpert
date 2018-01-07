@@ -14,6 +14,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
 import org.w3c.dom.Document;
@@ -58,12 +59,13 @@ public class ParseXMLECLRules {
 	/**
 	 * Compile the rules (which is the filePath) to transform into a XML structure 
 	 * @param filePath
+	 * @param project 
 	 * @return
 	 * @throws ParserConfigurationException 
 	 * @throws IOException 
 	 * @throws SAXException 
 	 */
-	public static Document parseDocumentFromXMLFile(String filePath, ILog log) throws ParserConfigurationException, SAXException, IOException {
+	public static Document parseDocumentFromXMLFile(String filePath, ILog log, IProject project) throws ParserConfigurationException, SAXException, IOException, FileNotFoundException {
 
 		Document doc = null;
 		
@@ -77,7 +79,8 @@ public class ParseXMLECLRules {
 			doc = dBuilder.parse(fXmlFile);
 
 		} catch (FileNotFoundException e) {
-			log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - File contract.xml not found."));
+			log.log(new Status(Status.ERROR, PLUGIN_LOG_IDENTIFIER, "ERROR - File contract.xml not found for project " + project.getName() + "."));
+			throw e;
 		} 
 
 		return doc;
