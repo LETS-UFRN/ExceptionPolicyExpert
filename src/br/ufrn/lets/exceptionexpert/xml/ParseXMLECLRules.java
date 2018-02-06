@@ -1,4 +1,4 @@
-package br.ufrn.lets.xml;
+package br.ufrn.lets.exceptionexpert.xml;
 
 import java.io.File;
 import java.io.FileNotFoundException;

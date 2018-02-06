@@ -1,4 +1,4 @@
-package exceptionexpert;
+package br.ufrn.lets.exceptionexpert.startup;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;

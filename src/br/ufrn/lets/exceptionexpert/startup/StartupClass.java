@@ -1,4 +1,4 @@
-package br.ufrn.lets;
+package br.ufrn.lets.exceptionexpert.startup;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,8 +41,7 @@ import br.ufrn.lets.exceptionexpert.models.RulesRepository;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperHandlingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.ImproperThrowingVerifier;
 import br.ufrn.lets.exceptionexpert.verifier.PossibleHandlersInformation;
-import br.ufrn.lets.xml.ParseXMLECLRules;
-import exceptionexpert.Activator;
+import br.ufrn.lets.exceptionexpert.xml.ParseXMLECLRules;
 
 public class StartupClass implements IStartup {
     

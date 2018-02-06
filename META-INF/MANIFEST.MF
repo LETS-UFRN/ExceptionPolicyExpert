@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: ExceptionExpert
 Bundle-SymbolicName: br.ufrn.lets.exceptionExpert;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: exceptionexpert.Activator
+Bundle-Activator: br.ufrn.lets.exceptionexpert.startup.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.jface.text;bundle-version="3.9.2",
