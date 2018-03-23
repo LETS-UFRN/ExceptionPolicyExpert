@@ -17,5 +17,7 @@ You can run the Eclipse in a easy way direct by Eclipse:
 2. Right-button on project
 3. Run as -> Eclipse Application
 
+## How to extract the logs
 
+The EPE plugin add information in the Eclipse logs files, for each violation or tip it could find. To extract the log data, please see the EPE Log Extractor and Analyser repository: https://github.com/taizarm/ExceptionPolicyExpertLogExtract
 
